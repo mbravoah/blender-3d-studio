@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blender 3D Design Studio</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #e8e8e8;
+    --text2: #888;
+    --text3: #555;
+    --accent: #e8ff47;
+    --accent2: #b8cc1a;
+    --info: #47b8ff;
+    --info-bg: rgba(71,184,255,0.1);
+    --success: #47ff9a;
+    --success-bg: rgba(71,255,154,0.1);
+    --danger: #ff6b6b;
+    --danger-bg: rgba(255,107,107,0.1);
+    --warn: #ffb347;
+    --warn-bg: rgba(255,179,71,0.1);
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 13px; min-height: 100vh; }
+
+  header { border-bottom: 0.5px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg); z-index: 100; }
+  .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .z-indicator { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--success-bg); border: 0.5px solid rgba(71,255,154,0.2); border-radius: var(--radius); font-size: 11px; color: var(--success); }
+  .z-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  main { display: grid; grid-template-columns: 360px 1fr; min-height: calc(100vh - 57px); }
+
+  .panel { border-right: 0.5px solid var(--border); overflow-y: auto; max-height: calc(100vh - 57px); position: sticky; top: 57px; }
+  .panel-section { border-bottom: 0.5px solid var(--border); padding: 1.25rem 1.5rem; }
+  .section-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 1rem; }
+
+  .workspace { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 5px; letter-spacing: 0.02em; }
+  input[type=number], input[type=text], select, textarea {
+    width: 100%; padding: 7px 10px;
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 13px;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  button { cursor: pointer; font-family: inherit; font-size: 12px; border-radius: var(--radius); transition: all .15s; }
+  button:active { transform: scale(0.97); }
+  .btn { padding: 7px 14px; background: transparent; border: 0.5px solid var(--border2); color: var(--text2); }
+  .btn:hover { border-color: var(--text2); color: var(--text); background: var(--bg3); }
+  .btn-accent { padding: 9px 18px; background: var(--accent); border: none; color: #0f0f0f; font-weight: 700; letter-spacing: 0.02em; }
+  .btn-accent:hover { background: var(--accent2); }
+  .btn-info { padding: 7px 14px; background: var(--info-bg); border: 0.5px solid rgba(71,184,255,0.2); color: var(--info); }
+  .btn-info:hover { border-color: var(--info); }
+  .btn-danger { padding: 5px 10px; background: var(--danger-bg); border: 0.5px solid rgba(255,107,107,0.2); color: var(--danger); }
+  .btn-danger:hover { border-color: var(--danger); }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  .tab-row { display: flex; gap: 2px; background: var(--bg3); border-radius: var(--radius); padding: 3px; margin-bottom: 1rem; }
+  .tab { flex: 1; padding: 6px; text-align: center; background: transparent; border: none; color: var(--text2); border-radius: 6px; font-size: 12px; }
+  .tab.active { background: var(--bg2); color: var(--text); border: 0.5px solid var(--border2); }
+
+  .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .card + .card { margin-top: .75rem; }
+
+  .face-grid { display: grid; grid-template-columns: repeat(3,38px); grid-template-rows: repeat(3,38px); gap: 4px; }
+  .face-btn { width: 38px; height: 38px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 9px; color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .15s; user-select: none; letter-spacing: 0.02em; }
+  .face-btn:hover { border-color: var(--text2); color: var(--text); }
+  .face-btn.active { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+  .face-btn.disabled { opacity: .2; pointer-events: none; }
+
+  .preset-chip { padding: 4px 10px; background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); color: var(--text2); font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .preset-chip:hover { border-color: var(--text2); color: var(--text); }
+
+  .calc-bar { margin-top: 10px; padding: 8px 12px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 11px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
+  .calc-bar .ext { color: var(--accent); font-weight: 700; }
+
+  .seq-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg3); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 6px; }
+  .seq-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #0f0f0f; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .seq-info { flex: 1; }
+  .seq-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .seq-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; margin-left: 6px; }
+  .badge-h { background: var(--info-bg); color: var(--info); }
+  .badge-s { background: var(--success-bg); color: var(--success); }
+
+  .code-area { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; font-family: 'SF Mono','Fira Code','Cascadia Code',monospace; font-size: 12px; line-height: 1.7; color: #c9d1d9; white-space: pre; overflow: auto; max-height: 60vh; min-height: 300px; }
+  .code-comment { color: #6e7681; }
+  .code-key { color: var(--accent); }
+
+  .warn-box { display: none; padding: 8px 12px; background: var(--warn-bg); border: 0.5px solid rgba(255,179,71,0.3); border-radius: var(--radius); font-size: 11px; color: var(--warn); margin-top: 6px; }
+
+  .chip-row { display: flex; gap: 5px; flex-wrap: wrap; margin: 6px 0; }
+  .seg-chip { padding: 3px 9px; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 11px; color: var(--text2); cursor: pointer; }
+  .seg-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); }
+  .empty-state .icon { font-size: 32px; margin-bottom: .75rem; }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+  .hint { font-size: 10px; color: var(--text3); margin-top: 4px; line-height: 1.5; }
+
+  .action-bar { display: flex; gap: 8px; flex-wrap: wrap; padding: 1.25rem 1.5rem; border-top: 0.5px solid var(--border); background: var(--bg); position: sticky; bottom: 0; }
+
+  .workspace-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
+  .workspace-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+
+  .copy-btn-wrap { display: flex; gap: 8px; align-items: center; }
+
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; }
+    .panel { position: static; max-height: none; border-right: none; border-bottom: 0.5px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Blender <span>3D</span> Studio</div>
+    <div class="logo-sub">Generador de código Python para Blender</div>
+  </div>
+  <div class="header-right">
+    <div class="z-indicator">
+      <div class="z-dot"></div>
+      Base siempre en Z ≥ 0
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- ══════════ PANEL IZQUIERDO ══════════ -->
+<div class="panel">
+
+  <div class="panel-section">
+    <div class="section-title">Figura</div>
+    <div class="row2" style="margin-bottom:10px">
+      <div><label>Forma</label>
+        <select id="shape" onchange="onShapeChange()">
+          <option value="box">Prisma rectangular</option>
+          <option value="cylinder">Cilindro</option>
+          <option value="sphere">Esfera</option>
+          <option value="cone">Cono</option>
+          <option value="torus">Toro (donut)</option>
+          <option value="hex">Prisma hexagonal</option>
+        </select>
+      </div>
+      <div><label>Tipo</label>
+        <select id="solidType" onchange="onSolidChange()">
+          <option value="hollow">Hueco (shell)</option>
+          <option value="solid">Sólido</option>
+        </select>
+      </div>
+    </div>
+    <div id="wall-section">
+      <label>Grosor de paredes (mm)</label>
+      <input type="number" id="wall" value="3" min="0.5" step="0.5" onchange="refreshCalc()">
+      <p class="hint">Aplica a todas las paredes y al fondo.</p>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Dimensiones internas <span id="dim-hint" style="color:var(--text3)">(externas se calculan solas)</span></div>
+    <div id="dims-box">
+      <div class="row3">
+        <div><label>X — Largo</label><input type="number" id="dx" value="28" min="1" step="0.5" onchange="refreshCalc()"></div>
+        <div><label>Y — Ancho</label><input type="number" id="dy" value="15" min="1" step="0.5" onchange="refreshCalc()"></div>
+        <div><label>Z — Alto</label><input type="number" id="dz" value="65" min="1" step="0.5" onchange="refreshCalc()"></div>
+      </div>
+    </div>
+    <div id="dims-cyl" style="display:none">
+      <div class="row2">
+        <div><label>Radio interno (mm)</label><input type="number" id="cr" value="14" min="1" step="0.5" onchange="refreshCalc()"></div>
+        <div><label>Alto Z (mm)</label><input type="number" id="czh" value="65" min="1" step="0.5"></div>
+      </div>
+      <label style="margin-top:8px">Segmentos</label>
+      <div class="chip-row"><button class="seg-chip" onclick="setSeg(16)">16</button><button class="seg-chip" onclick="setSeg(32)">32</button><button class="seg-chip" onclick="setSeg(64)">64 ★</button><button class="seg-chip" onclick="setSeg(128)">128</button></div>
+      <input type="number" id="csegs" value="64" min="8" step="4" style="width:90px">
+    </div>
+    <div id="dims-sphere" style="display:none">
+      <div class="row2">
+        <div><label>Radio interno (mm)</label><input type="number" id="sr" value="15" min="1" step="0.5" onchange="refreshCalc()"></div>
+        <div><label>Segmentos</label><input type="number" id="ssegs" value="64" min="8" step="4"></div>
+      </div>
+    </div>
+    <div id="dims-cone" style="display:none">
+      <div class="row3">
+        <div><label>Radio base</label><input type="number" id="conr" value="14" min="1" step="0.5"></div>
+        <div><label>Radio tope</label><input type="number" id="conr2" value="0" min="0" step="0.5"></div>
+        <div><label>Alto (mm)</label><input type="number" id="conh" value="50" min="1" step="0.5"></div>
+      </div>
+    </div>
+    <div id="dims-torus" style="display:none">
+      <div class="row2">
+        <div><label>Radio mayor (mm)</label><input type="number" id="tmaj" value="20" min="1" step="0.5"></div>
+        <div><label>Radio menor (mm)</label><input type="number" id="tmin" value="5" min="1" step="0.5"></div>
+      </div>
+    </div>
+    <div id="dims-hex" style="display:none">
+      <div class="row2">
+        <div><label>Radio interno (mm)</label><input type="number" id="hexr" value="15" min="1" step="0.5" onchange="refreshCalc()"></div>
+        <div><label>Alto (mm)</label><input type="number" id="hexh" value="40" min="1" step="0.5"></div>
+      </div>
+    </div>
+    <div class="calc-bar">
+      <span id="calc-summary">Exterior: 34 × 21 × 68 mm</span>
+    </div>
+  </div>
+
+  <div class="panel-section" id="faces-section">
+    <div class="section-title">Caras a eliminar</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+      <div>
+        <div class="face-grid">
+          <div class="face-btn disabled"></div>
+          <div class="face-btn" id="f-top" onclick="toggleFace('top',this)">TOP ↑</div>
+          <div class="face-btn disabled"></div>
+          <div class="face-btn" id="f-left" onclick="toggleFace('left',this)">← IZQ</div>
+          <div class="face-btn" id="f-front" onclick="toggleFace('front',this)">FRNT</div>
+          <div class="face-btn" id="f-right" onclick="toggleFace('right',this)">DER →</div>
+          <div class="face-btn disabled"></div>
+          <div class="face-btn" id="f-bottom" onclick="toggleFace('bottom',this)" style="border-bottom:2px solid rgba(71,255,154,.4)">BOT ↓</div>
+          <div class="face-btn disabled"></div>
+        </div>
+        <p class="hint" style="margin-top:6px;max-width:130px">Rojo = eliminada. BOT = cama de impresión.</p>
+      </div>
+      <div>
+        <label style="margin-bottom:6px">Presets</label>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <button class="preset-chip" onclick="setPreset('open-top')">Sin tapa (top)</button>
+          <button class="preset-chip" onclick="setPreset('open-bottom')">Sin base (bottom)</button>
+          <button class="preset-chip" onclick="setPreset('open-both')">Tubo (sin top/bot)</button>
+          <button class="preset-chip" onclick="setPreset('none')">Cerrado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Posición en cama (mm)</div>
+    <div class="row3">
+      <div><label>X lateral</label><input type="number" id="px" value="0" step="1"></div>
+      <div><label>Y profund.</label><input type="number" id="py" value="0" step="1"></div>
+      <div><label>Z desde cama ↑</label><input type="number" id="pz" value="0" step="1" min="0" oninput="validatePZ(this)"></div>
+    </div>
+    <div class="warn-box" id="warn-z">⚠ Z negativo no válido. Se usará Z = 0.</div>
+    <p class="hint" style="margin-top:6px">Todos los objetos tienen su base en Z ≥ 0. Nunca se genera geometría bajo la cama.</p>
+  </div>
+
+  <div class="panel-section">
+    <div class="section-title">Opciones</div>
+    <div class="row2">
+      <div><label>Chaflán (mm)</label><input type="number" id="chamfer" value="0" min="0" step="0.2" style="width:100%"></div>
+      <div><label>Solver booleano</label>
+        <select id="solver">
+          <option value="EXACT">EXACT (impresión 3D)</option>
+          <option value="FAST">FAST</option>
+        </select>
+      </div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+        <input type="checkbox" id="chk-export" onchange="toggleExport()"> Exportar STL automáticamente
+      </label>
+      <div id="export-path-row" style="display:none">
+        <label>Ruta STL</label>
+        <input type="text" id="export-path" value="/tmp/modelo_3d.stl">
+      </div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn-accent" onclick="addToSequence()">+ Agregar a secuencia</button>
+    <button class="btn-info" onclick="generateAndShow(false)">Ver código →</button>
+    <button class="btn btn-sm" onclick="resetForm()">Limpiar</button>
+  </div>
+</div>
+
+<!-- ══════════ WORKSPACE DERECHO ══════════ -->
+<div class="workspace">
+
+  <div class="tab-row" style="max-width:420px">
+    <button class="tab active" onclick="showTab('sequence')">Secuencia</button>
+    <button class="tab" onclick="showTab('code')">Código Blender</button>
+  </div>
+
+  <!-- TAB: SECUENCIA -->
+  <div id="tab-sequence">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div class="workspace-title">Figuras en la secuencia</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-info btn-sm" onclick="generateAndShow(true)">Generar código →</button>
+        <button class="btn btn-sm btn-danger" onclick="clearSequence()">Vaciar</button>
+      </div>
+    </div>
+    <div id="seq-list">
+      <div class="empty-state">
+        <div class="icon">◻</div>
+        <div>No hay figuras todavía.</div>
+        <div style="margin-top:4px;font-size:11px">Configura una figura en el panel izquierdo y haz clic en <strong style="color:var(--accent)">+ Agregar</strong>.</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;font-size:12px">
+        <input type="checkbox" id="chk-join-all" checked>
+        Unir todas las figuras (bpy.ops.object.join) al final del script
+      </label>
+      <p class="hint" style="margin-top:6px">Necesario para imprimir las piezas como una sola malla. Desactiva si quieres objetos separados en Blender.</p>
+    </div>
+  </div>
+
+  <!-- TAB: CÓDIGO -->
+  <div id="tab-code" style="display:none">
+    <div class="workspace-header">
+      <div class="workspace-title">Script Python — listo para Blender</div>
+      <div class="copy-btn-wrap">
+        <button class="btn-info btn-sm" onclick="copyCode()" id="copy-btn">Copiar</button>
+        <button class="btn btn-sm" onclick="downloadCode()">Descargar .py</button>
+      </div>
+    </div>
+    <div class="code-area" id="code-output">— Genera el código desde el panel izquierdo o la pestaña Secuencia —</div>
+    <div class="card" style="margin-top:1rem;font-size:11px;color:var(--text2);line-height:1.7">
+      <strong style="color:var(--text)">Cómo usar en Blender:</strong><br>
+      1. Abrir Blender → pestaña <em>Scripting</em><br>
+      2. Clic en <em>New</em> → pegar el código → <strong>Alt+P</strong><br>
+      3. Exportar: <em>File → Export → STL</em><br>
+      4. Verificar: <em>Scene Properties → Unit Scale = 0.001, Length = Millimeters</em>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<script>
+const removedFaces={top:false,bottom:false,front:false,left:false,right:false};
+const sequence=[];
+let figCounter=1;
+
+function toggleExport(){
+  document.getElementById('export-path-row').style.display=document.getElementById('chk-export').checked?'block':'none';
+}
+function validatePZ(inp){
+  document.getElementById('warn-z').style.display=parseFloat(inp.value)<0?'flex':'none';
+}
+function safeZ(v){return Math.max(0,parseFloat(v)||0);}
+
+function showTab(t){
+  ['sequence','code'].forEach(x=>{document.getElementById('tab-'+x).style.display=x===t?'block':'none';});
+  document.querySelectorAll('.tab').forEach((b,i)=>{b.classList.toggle('active',['sequence','code'][i]===t);});
+}
+
+function onShapeChange(){
+  const s=document.getElementById('shape').value;
+  ['box','cyl','sphere','cone','torus','hex'].forEach(k=>{const e=document.getElementById('dims-'+k);if(e)e.style.display='none';});
+  const map={box:'box',cylinder:'cyl',sphere:'sphere',cone:'cone',torus:'torus',hex:'hex'};
+  document.getElementById('dims-'+map[s]).style.display='';
+  document.getElementById('faces-section').style.display=(s==='box'||s==='hex')?'block':'none';
+  refreshCalc();
+}
+function onSolidChange(){
+  const h=document.getElementById('solidType').value==='hollow';
+  document.getElementById('wall-section').style.display=h?'block':'none';
+  document.getElementById('dim-hint').style.display=h?'inline':'none';
+  refreshCalc();
+}
+function refreshCalc(){
+  const s=document.getElementById('shape').value;
+  const h=document.getElementById('solidType').value==='hollow';
+  const w=h?parseFloat(document.getElementById('wall').value)||3:0;
+  let t='';
+  if(s==='box'){const dx=parseFloat(document.getElementById('dx').value)||28,dy=parseFloat(document.getElementById('dy').value)||15,dz=parseFloat(document.getElementById('dz').value)||65;t=h?`Exterior: ${dx+2*w} × ${dy+2*w} × ${dz+w} mm`:`Sólido: ${dx} × ${dy} × ${dz} mm`;}
+  else if(s==='cylinder'){const cr=parseFloat(document.getElementById('cr').value)||14;t=h?`Radio ext: ${cr+w} mm`:`Radio: ${cr} mm`;}
+  else if(s==='sphere'){const sr=parseFloat(document.getElementById('sr').value)||15;t=h?`Radio ext: ${sr+w} mm`:`Radio: ${sr} mm`;}
+  else if(s==='hex'){const hr=parseFloat(document.getElementById('hexr').value)||15;t=h?`Radio ext: ${hr+w} mm`:`Radio: ${hr} mm`;}
+  else if(s==='cone'){t=`Radio base: ${parseFloat(document.getElementById('conr').value)||14} mm`;}
+  else if(s==='torus'){t=`R mayor: ${parseFloat(document.getElementById('tmaj').value)||20} mm`;}
+  document.getElementById('calc-summary').textContent=t;
+}
+function toggleFace(f,el){removedFaces[f]=!removedFaces[f];el.classList.toggle('active',removedFaces[f]);}
+function setPreset(p){
+  Object.keys(removedFaces).forEach(k=>{removedFaces[k]=false;const e=document.getElementById('f-'+k);if(e)e.classList.remove('active');});
+  if(p==='open-top'){removedFaces.top=true;document.getElementById('f-top').classList.add('active');}
+  else if(p==='open-bottom'){removedFaces.bottom=true;document.getElementById('f-bottom').classList.add('active');}
+  else if(p==='open-both'){['top','bottom'].forEach(k=>{removedFaces[k]=true;document.getElementById('f-'+k).classList.add('active');});}
+}
+function setSeg(n){document.getElementById('csegs').value=n;}
+
+function getFigureData(){
+  const shape=document.getElementById('shape').value;
+  const hollow=document.getElementById('solidType').value==='hollow';
+  const wall=parseFloat(document.getElementById('wall').value)||3;
+  const chamfer=parseFloat(document.getElementById('chamfer').value)||0;
+  const solver=document.getElementById('solver').value;
+  const pos=[parseFloat(document.getElementById('px').value)||0,parseFloat(document.getElementById('py').value)||0,safeZ(document.getElementById('pz').value)];
+  const faces={...removedFaces};
+  let dims={};
+  if(shape==='box') dims={dx:parseFloat(document.getElementById('dx').value)||28,dy:parseFloat(document.getElementById('dy').value)||15,dz:parseFloat(document.getElementById('dz').value)||65};
+  else if(shape==='cylinder') dims={r:parseFloat(document.getElementById('cr').value)||14,h:parseFloat(document.getElementById('czh').value)||65,segs:parseInt(document.getElementById('csegs').value)||64};
+  else if(shape==='sphere') dims={r:parseFloat(document.getElementById('sr').value)||15,segs:parseInt(document.getElementById('ssegs').value)||64};
+  else if(shape==='cone') dims={r1:parseFloat(document.getElementById('conr').value)||14,r2:parseFloat(document.getElementById('conr2').value)||0,h:parseFloat(document.getElementById('conh').value)||50,segs:32};
+  else if(shape==='torus') dims={maj:parseFloat(document.getElementById('tmaj').value)||20,min:parseFloat(document.getElementById('tmin').value)||5};
+  else if(shape==='hex') dims={r:parseFloat(document.getElementById('hexr').value)||15,h:parseFloat(document.getElementById('hexh').value)||40};
+  return{shape,hollow,wall,chamfer,solver,pos,faces,dims};
+}
+
+function descFigure(f){
+  const names={box:'Prisma rect.',cylinder:'Cilindro',sphere:'Esfera',cone:'Cono',torus:'Toro',hex:'Hexagonal'};
+  const n=names[f.shape]||f.shape;
+  let sub='';
+  if(f.shape==='box') sub=`${f.dims.dx}×${f.dims.dy}×${f.dims.dz}mm int. | Z=${f.pos[2]}`;
+  else if(f.shape==='cylinder') sub=`r=${f.dims.r}mm h=${f.dims.h}mm | Z=${f.pos[2]}`;
+  else if(f.shape==='sphere') sub=`r=${f.dims.r}mm | Z=${f.pos[2]}`;
+  else if(f.shape==='cone') sub=`r=${f.dims.r1}→${f.dims.r2}mm h=${f.dims.h}mm | Z=${f.pos[2]}`;
+  else if(f.shape==='torus') sub=`R=${f.dims.maj} r=${f.dims.min}mm | Z=${f.pos[2]}`;
+  else if(f.shape==='hex') sub=`r=${f.dims.r}mm h=${f.dims.h}mm | Z=${f.pos[2]}`;
+  return{name:n,sub,hollow:f.hollow};
+}
+
+function addToSequence(){
+  const fig=getFigureData();fig.id=figCounter++;
+  sequence.push(fig);renderSeqList();showTab('sequence');
+}
+function removeSeq(i){sequence.splice(i,1);renderSeqList();}
+function clearSequence(){sequence.length=0;figCounter=1;renderSeqList();}
+function renderSeqList(){
+  const el=document.getElementById('seq-list');
+  if(!sequence.length){el.innerHTML='<div class="empty-state"><div class="icon">◻</div><div>Sin figuras.</div></div>';return;}
+  el.innerHTML=sequence.map((f,i)=>{
+    const d=descFigure(f);
+    return `<div class="seq-item"><div class="seq-num">${i+1}</div><div class="seq-info"><div class="seq-name">${d.name}<span class="badge ${d.hollow?'badge-h':'badge-s'}">${d.hollow?'HUECO':'SÓLIDO'}</span></div><div class="seq-sub">${d.sub}</div></div><button class="btn-danger btn-sm" onclick="removeSeq(${i})">✕</button></div>`;
+  }).join('');
+}
+
+function generateCode(figs,joinAll,exportStl,exportPath){
+  const L=[];
+  L.push('import bpy');L.push('import bmesh');L.push('import mathutils');L.push('');
+  L.push('# Limpiar escena');
+  L.push('bpy.ops.object.select_all(action="SELECT")');
+  L.push('bpy.ops.object.delete()');L.push('');
+  L.push('# NOTA: Toda geometría tiene base en Z >= 0 (cama de impresión)');L.push('');
+  L.push('created_objects = []');L.push('');
+
+  figs.forEach((f,idx)=>{
+    const nm=`fig_${idx+1}`;const w=f.wall;
+    const pz=Math.max(0,f.pos[2]),px=f.pos[0],py=f.pos[1];
+    L.push(`# ── Figura ${idx+1}: ${descFigure(f).name} | ${f.hollow?'Hueco':'Sólido'} | Base Z=${pz} ──`);
+
+    if(f.shape==='box'){
+      const{dx,dy,dz}=f.dims;
+      const ex=f.hollow?dx+2*w:dx,ey=f.hollow?dy+2*w:dy,ez=f.hollow?dz+w:dz;
+      L.push(`bpy.ops.mesh.primitive_cube_add(size=1, location=(${px}, ${py}, ${pz+ez/2}))`);
+      L.push(`${nm}_ext = bpy.context.active_object`);
+      L.push(`${nm}_ext.scale = (${ex}, ${ey}, ${ez})`);
+      L.push(`bpy.ops.object.transform_apply(scale=True)`);
+      if(f.hollow){
+        const iz=dz,izc=pz+w+iz/2;
+        L.push(`bpy.ops.mesh.primitive_cube_add(size=1, location=(${px}, ${py}, ${izc}))`);
+        L.push(`${nm}_int = bpy.context.active_object`);
+        L.push(`${nm}_int.scale = (${dx}, ${dy}, ${iz})`);
+        L.push(`bpy.ops.object.transform_apply(scale=True)`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_ext.select_set(True)`);
+        L.push(`bpy.context.view_layer.objects.active = ${nm}_ext`);
+        L.push(`mod = ${nm}_ext.modifiers.new("hueco","BOOLEAN")`);
+        L.push(`mod.operation = 'DIFFERENCE'`);
+        L.push(`mod.object = ${nm}_int`);
+        L.push(`mod.solver = '${f.solver}'`);
+        L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_int.select_set(True)`);
+        L.push(`bpy.ops.object.delete()`);
+      }
+      const fl=Object.entries(f.faces).filter(([,v])=>v).map(([k])=>k);
+      if(fl.length){
+        L.push(`# Eliminar caras: ${fl.join(', ')}`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_ext.select_set(True)`);
+        L.push(`bpy.context.view_layer.objects.active = ${nm}_ext`);
+        L.push(`bpy.ops.object.mode_set(mode='EDIT')`);
+        L.push(`bpy.ops.mesh.select_all(action='DESELECT')`);
+        L.push(`bm = bmesh.from_edit_mesh(${nm}_ext.data)`);
+        const normals={top:'(0,0,1)',bottom:'(0,0,-1)',front:'(0,-1,0)',left:'(-1,0,0)',right:'(1,0,0)'};
+        fl.forEach(face=>{if(normals[face])L.push(`[setattr(fa,'select',True) for fa in bm.faces if fa.normal.dot(mathutils.Vector(${normals[face]})) > 0.9]`);});
+        L.push(`bmesh.update_edit_mesh(${nm}_ext.data)`);
+        L.push(`bpy.ops.mesh.delete(type='FACE')`);
+        L.push(`bpy.ops.object.mode_set(mode='OBJECT')`);
+      }
+      if(f.chamfer>0){L.push(`mod_bev=${nm}_ext.modifiers.new("bevel","BEVEL")`);L.push(`mod_bev.width=${f.chamfer}`);L.push(`mod_bev.segments=2`);L.push(`bpy.ops.object.modifier_apply(modifier="bevel")`);}
+      L.push(`${nm}_ext.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm}_ext)`);
+    }
+    else if(f.shape==='cylinder'){
+      const{r,h,segs}=f.dims;const er=f.hollow?r+w:r;
+      L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=${segs}, radius=${er}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
+      L.push(`${nm} = bpy.context.active_object`);
+      if(f.hollow){
+        L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=${segs}, radius=${r}, depth=${h+2}, location=(${px},${py},${pz+h/2}))`);
+        L.push(`${nm}_int = bpy.context.active_object`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+      }
+      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+    }
+    else if(f.shape==='sphere'){
+      const{r,segs}=f.dims;const er=f.hollow?r+w:r;
+      L.push(`bpy.ops.mesh.primitive_uv_sphere_add(segments=${segs}, ring_count=${Math.floor(segs/2)}, radius=${er}, location=(${px},${py},${pz+er}))`);
+      L.push(`${nm} = bpy.context.active_object`);
+      if(f.hollow){
+        L.push(`bpy.ops.mesh.primitive_uv_sphere_add(segments=${segs}, ring_count=${Math.floor(segs/2)}, radius=${r}, location=(${px},${py},${pz+er}))`);
+        L.push(`${nm}_int = bpy.context.active_object`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+      }
+      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+    }
+    else if(f.shape==='cone'){
+      const{r1,r2,h,segs}=f.dims;
+      L.push(`bpy.ops.mesh.primitive_cone_add(vertices=${segs}, radius1=${r1}, radius2=${r2}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
+      L.push(`${nm} = bpy.context.active_object`);L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+    }
+    else if(f.shape==='torus'){
+      const{maj,min:mn}=f.dims;
+      L.push(`bpy.ops.mesh.primitive_torus_add(major_radius=${maj}, minor_radius=${mn}, location=(${px},${py},${pz+mn}))`);
+      L.push(`${nm} = bpy.context.active_object`);L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+    }
+    else if(f.shape==='hex'){
+      const{r,h}=f.dims;const er=f.hollow?r+w:r;
+      L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=${er}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
+      L.push(`${nm} = bpy.context.active_object`);
+      if(f.hollow){
+        L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=${r}, depth=${h+2}, location=(${px},${py},${pz+h/2}))`);
+        L.push(`${nm}_int = bpy.context.active_object`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+      }
+      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+    }
+    L.push('');
+  });
+
+  if(figs.length>1&&joinAll){
+    L.push('# ── Unir todas las figuras ──');
+    L.push('bpy.ops.object.select_all(action="DESELECT")');
+    L.push('for obj in created_objects: obj.select_set(True)');
+    L.push('bpy.context.view_layer.objects.active = created_objects[0]');
+    L.push('bpy.ops.object.join()');
+    L.push('bpy.context.active_object.name = "modelo_unido"');L.push('');
+  }
+
+  L.push('# ── Recalcular normales ──');
+  L.push('bpy.ops.object.mode_set(mode="EDIT")');
+  L.push('bpy.ops.mesh.select_all(action="SELECT")');
+  L.push('bpy.ops.mesh.normals_make_consistent(inside=False)');
+  L.push('bpy.ops.object.mode_set(mode="OBJECT")');L.push('');
+
+  if(exportStl&&exportPath){
+    L.push('# ── Exportar STL ──');
+    L.push(`bpy.ops.export_mesh.stl(filepath="${exportPath}", use_selection=False, global_scale=1.0)`);
+    L.push(`print("STL exportado: ${exportPath}")`);L.push('');
+  }
+
+  L.push(`print("✅ ${figs.length} figura(s) creada(s). Toda geometría en Z >= 0.")`);
+  return L.join('\n');
+}
+
+function generateAndShow(fromSeq){
+  const figs=fromSeq?sequence:[getFigureData()];
+  if(!figs.length){alert('No hay figuras en la secuencia.');return;}
+  const joinAll=document.getElementById('chk-join-all').checked;
+  const exportStl=document.getElementById('chk-export').checked;
+  const exportPath=document.getElementById('export-path').value;
+  const code=generateCode(figs,joinAll,exportStl,exportPath);
+  document.getElementById('code-output').textContent=code;
+  showTab('code');
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById('code-output').textContent).then(()=>{
+    const b=document.getElementById('copy-btn');b.textContent='¡Copiado!';
+    setTimeout(()=>b.textContent='Copiar',2000);
+  });
+}
+
+function downloadCode(){
+  const txt=document.getElementById('code-output').textContent;
+  if(txt.startsWith('—')){alert('Genera el código primero.');return;}
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
+  a.download='blender_script.py';a.click();
+}
+
+function resetForm(){
+  ['shape','solidType','solver'].forEach(id=>document.getElementById(id).selectedIndex=0);
+  document.getElementById('wall').value=3;
+  document.getElementById('dx').value=28;document.getElementById('dy').value=15;document.getElementById('dz').value=65;
+  document.getElementById('chamfer').value=0;
+  document.getElementById('px').value=0;document.getElementById('py').value=0;document.getElementById('pz').value=0;
+  document.getElementById('warn-z').style.display='none';
+  Object.keys(removedFaces).forEach(k=>{removedFaces[k]=false;const e=document.getElementById('f-'+k);if(e)e.classList.remove('active');});
+  onShapeChange();onSolidChange();refreshCalc();
+}
+
+onShapeChange();onSolidChange();refreshCalc();setPreset('open-top');
+</script>
+</body>
+</html>
