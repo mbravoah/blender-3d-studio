@@ -450,61 +450,150 @@ function renderSeqList(){
 
 function generateCode(figs,joinAll,exportStl,exportPath){
   const L=[];
-  L.push('import bpy');L.push('import bmesh');L.push('import mathutils');L.push('');
+  L.push('import bpy');
+  L.push('import bmesh');
+  L.push('from mathutils import Vector');
+  L.push('');
   L.push('# Limpiar escena');
   L.push('bpy.ops.object.select_all(action="SELECT")');
-  L.push('bpy.ops.object.delete()');L.push('');
-  L.push('# NOTA: Toda geometría tiene base en Z >= 0 (cama de impresión)');L.push('');
-  L.push('created_objects = []');L.push('');
+  L.push('bpy.ops.object.delete()');
+  L.push('');
+  L.push('# NOTA: Toda geometría tiene base en Z >= 0 (cama de impresión)');
+  L.push('# Los prismas huecos se construyen con BMesh directo (sin booleanos)');
+  L.push('# para garantizar paredes sólidas correctas para impresión 3D.');
+  L.push('');
+  L.push('created_objects = []');
+  L.push('');
+
+  // Helper function emitted once into the script
+  L.push('# ── Helper: construir caja hueca con BMesh ──────────────────────────');
+  L.push('def make_hollow_box(name, ix, iy, iz, wall, pz, px=0, py=0, remove_faces=None):');
+  L.push('    """');
+  L.push('    Construye un prisma rectangular hueco para impresión 3D.');
+  L.push('    ix,iy,iz = dimensiones INTERNAS.');
+  L.push('    wall     = grosor de paredes y fondo.');
+  L.push('    pz       = posición Z de la base exterior (>= 0).');
+  L.push('    remove_faces = lista de caras a eliminar: "top","bottom","front","back","left","right"');
+  L.push('    La pieza tiene fondo pero NO tapa por defecto (open top).');
+  L.push('    """');
+  L.push('    ex, ey, ez = ix + 2*wall, iy + 2*wall, iz + wall  # exterior');
+  L.push('    # Coordenadas exteriores (base en pz)');
+  L.push('    x0, x1 = px - ex/2, px + ex/2');
+  L.push('    y0, y1 = py - ey/2, py + ey/2');
+  L.push('    z0, z1 = pz,        pz + ez');
+  L.push('    # Coordenadas interiores');
+  L.push('    xi0, xi1 = px - ix/2, px + ix/2');
+  L.push('    yi0, yi1 = py - iy/2, py + iy/2');
+  L.push('    zi0      = pz + wall   # fondo interior');
+  L.push('    zi1      = pz + ez     # tope (abierto)');
+  L.push('');
+  L.push('    mesh = bpy.data.meshes.new(name)');
+  L.push('    obj  = bpy.data.objects.new(name, mesh)');
+  L.push('    bpy.context.collection.objects.link(obj)');
+  L.push('    bpy.context.view_layer.objects.active = obj');
+  L.push('    obj.select_set(True)');
+  L.push('');
+  L.push('    bm = bmesh.new()');
+  L.push('');
+  L.push('    # 8 vértices exteriores');
+  L.push('    e = [bm.verts.new(v) for v in [');
+  L.push('        (x0,y0,z0),(x1,y0,z0),(x1,y1,z0),(x0,y1,z0),  # base ext');
+  L.push('        (x0,y0,z1),(x1,y0,z1),(x1,y1,z1),(x0,y1,z1),  # tope ext');
+  L.push('    ]]');
+  L.push('    # 8 vértices interiores');
+  L.push('    i = [bm.verts.new(v) for v in [');
+  L.push('        (xi0,yi0,zi0),(xi1,yi0,zi0),(xi1,yi1,zi0),(xi0,yi1,zi0),  # fondo int');
+  L.push('        (xi0,yi0,zi1),(xi1,yi0,zi1),(xi1,yi1,zi1),(xi0,yi1,zi1),  # tope int');
+  L.push('    ]]');
+  L.push('');
+  L.push('    rm = set(remove_faces or [])');
+  L.push('');
+  L.push('    # Cara: fondo exterior');
+  L.push('    if "bottom" not in rm:');
+  L.push('        bm.faces.new([e[0],e[3],e[2],e[1]])');
+  L.push('    # Cara: fondo interior (cara interna del fondo — sólido)');
+  L.push('    bm.faces.new([i[0],i[1],i[2],i[3]])');
+  L.push('    # Cara: tope abierto interior (anillo)');
+  L.push('    if "top" not in rm:');
+  L.push('        bm.faces.new([e[4],e[5],i[5],i[4]])  # frente tope');
+  L.push('        bm.faces.new([e[5],e[6],i[6],i[5]])  # derecha tope');
+  L.push('        bm.faces.new([e[6],e[7],i[7],i[6]])  # fondo tope');
+  L.push('        bm.faces.new([e[7],e[4],i[4],i[7]])  # izquierda tope');
+  L.push('    # Paredes exteriores');
+  L.push('    if "front" not in rm:');
+  L.push('        bm.faces.new([e[0],e[1],e[5],e[4]])');
+  L.push('    if "right" not in rm:');
+  L.push('        bm.faces.new([e[1],e[2],e[6],e[5]])');
+  L.push('    if "back" not in rm:');
+  L.push('        bm.faces.new([e[2],e[3],e[7],e[6]])');
+  L.push('    if "left" not in rm:');
+  L.push('        bm.faces.new([e[3],e[0],e[4],e[7]])');
+  L.push('    # Paredes interiores (cara interna de cada pared)');
+  L.push('    bm.faces.new([i[1],i[0],i[4],i[5]])  # frente int');
+  L.push('    bm.faces.new([i[2],i[1],i[5],i[6]])  # derecha int');
+  L.push('    bm.faces.new([i[3],i[2],i[6],i[7]])  # fondo int');
+  L.push('    bm.faces.new([i[0],i[3],i[7],i[4]])  # izquierda int');
+  L.push('    # Conectores fondo ext→int (las 4 esquinas del fondo sólido)');
+  L.push('    bm.faces.new([e[0],e[1],i[1],i[0]])');
+  L.push('    bm.faces.new([e[1],e[2],i[2],i[1]])');
+  L.push('    bm.faces.new([e[2],e[3],i[3],i[2]])');
+  L.push('    bm.faces.new([e[3],e[0],i[0],i[3]])');
+  L.push('');
+  L.push('    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)');
+  L.push('    bm.to_mesh(mesh)');
+  L.push('    bm.free()');
+  L.push('    return obj');
+  L.push('');
+  L.push('');
 
   figs.forEach((f,idx)=>{
-    const nm=`fig_${idx+1}`;const w=f.wall;
+    const nm=`fig_${idx+1}`;
+    const w=f.wall;
     const pz=Math.max(0,f.pos[2]),px=f.pos[0],py=f.pos[1];
     L.push(`# ── Figura ${idx+1}: ${descFigure(f).name} | ${f.hollow?'Hueco':'Sólido'} | Base Z=${pz} ──`);
 
     if(f.shape==='box'){
       const{dx,dy,dz}=f.dims;
-      const ex=f.hollow?dx+2*w:dx,ey=f.hollow?dy+2*w:dy,ez=f.hollow?dz+w:dz;
-      L.push(`bpy.ops.mesh.primitive_cube_add(size=1, location=(${px}, ${py}, ${pz+ez/2}))`);
-      L.push(`${nm}_ext = bpy.context.active_object`);
-      L.push(`${nm}_ext.scale = (${ex}, ${ey}, ${ez})`);
-      L.push(`bpy.ops.object.transform_apply(scale=True)`);
       if(f.hollow){
-        const iz=dz,izc=pz+w+iz/2;
-        L.push(`bpy.ops.mesh.primitive_cube_add(size=1, location=(${px}, ${py}, ${izc}))`);
-        L.push(`${nm}_int = bpy.context.active_object`);
-        L.push(`${nm}_int.scale = (${dx}, ${dy}, ${iz})`);
+        // Build face removal list
+        const fl=Object.entries(f.faces).filter(([,v])=>v).map(([k])=>k);
+        const faceStr=fl.length?`["${fl.join('","')}"]`:'[]';
+        L.push(`${nm} = make_hollow_box(`);
+        L.push(`    name="figura_${idx+1}",`);
+        L.push(`    ix=${dx}, iy=${dy}, iz=${dz},`);
+        L.push(`    wall=${w},`);
+        L.push(`    pz=${pz}, px=${px}, py=${py},`);
+        L.push(`    remove_faces=${faceStr}`);
+        L.push(`)`);
+      } else {
+        // Sólido: cubo simple
+        L.push(`bpy.ops.mesh.primitive_cube_add(size=1, location=(${px}, ${py}, ${pz+dz/2}))`);
+        L.push(`${nm} = bpy.context.active_object`);
+        L.push(`${nm}.scale = (${dx}, ${dy}, ${dz})`);
         L.push(`bpy.ops.object.transform_apply(scale=True)`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
-        L.push(`${nm}_ext.select_set(True)`);
-        L.push(`bpy.context.view_layer.objects.active = ${nm}_ext`);
-        L.push(`mod = ${nm}_ext.modifiers.new("hueco","BOOLEAN")`);
-        L.push(`mod.operation = 'DIFFERENCE'`);
-        L.push(`mod.object = ${nm}_int`);
-        L.push(`mod.solver = '${f.solver}'`);
-        L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
-        L.push(`${nm}_int.select_set(True)`);
-        L.push(`bpy.ops.object.delete()`);
+        L.push(`${nm}.name = "figura_${idx+1}"`);
+        // Face removal for solid box
+        const fl=Object.entries(f.faces).filter(([,v])=>v).map(([k])=>k);
+        if(fl.length){
+          const normals={top:'(0,0,1)',bottom:'(0,0,-1)',front:'(0,-1,0)',left:'(-1,0,0)',right:'(1,0,0)'};
+          L.push(`bpy.ops.object.mode_set(mode='EDIT')`);
+          L.push(`bpy.ops.mesh.select_all(action='DESELECT')`);
+          L.push(`bm_s = bmesh.from_edit_mesh(${nm}.data)`);
+          fl.forEach(face=>{if(normals[face])L.push(`[setattr(fa,'select',True) for fa in bm_s.faces if fa.normal.dot(Vector(${normals[face]})) > 0.9]`);});
+          L.push(`bmesh.update_edit_mesh(${nm}.data)`);
+          L.push(`bpy.ops.mesh.delete(type='FACE')`);
+          L.push(`bpy.ops.object.mode_set(mode='OBJECT')`);
+        }
       }
-      const fl=Object.entries(f.faces).filter(([,v])=>v).map(([k])=>k);
-      if(fl.length){
-        L.push(`# Eliminar caras: ${fl.join(', ')}`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
-        L.push(`${nm}_ext.select_set(True)`);
-        L.push(`bpy.context.view_layer.objects.active = ${nm}_ext`);
-        L.push(`bpy.ops.object.mode_set(mode='EDIT')`);
-        L.push(`bpy.ops.mesh.select_all(action='DESELECT')`);
-        L.push(`bm = bmesh.from_edit_mesh(${nm}_ext.data)`);
-        const normals={top:'(0,0,1)',bottom:'(0,0,-1)',front:'(0,-1,0)',left:'(-1,0,0)',right:'(1,0,0)'};
-        fl.forEach(face=>{if(normals[face])L.push(`[setattr(fa,'select',True) for fa in bm.faces if fa.normal.dot(mathutils.Vector(${normals[face]})) > 0.9]`);});
-        L.push(`bmesh.update_edit_mesh(${nm}_ext.data)`);
-        L.push(`bpy.ops.mesh.delete(type='FACE')`);
-        L.push(`bpy.ops.object.mode_set(mode='OBJECT')`);
+      if(f.chamfer>0){
+        L.push(`mod_bev=${nm}.modifiers.new("bevel","BEVEL")`);
+        L.push(`mod_bev.width=${f.chamfer}`);
+        L.push(`mod_bev.segments=2`);
+        L.push(`bpy.ops.object.modifier_apply(modifier="bevel")`);
       }
-      if(f.chamfer>0){L.push(`mod_bev=${nm}_ext.modifiers.new("bevel","BEVEL")`);L.push(`mod_bev.width=${f.chamfer}`);L.push(`mod_bev.segments=2`);L.push(`bpy.ops.object.modifier_apply(modifier="bevel")`);}
-      L.push(`${nm}_ext.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm}_ext)`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     else if(f.shape==='cylinder'){
       const{r,h,segs}=f.dims;const er=f.hollow?r+w:r;
       L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=${segs}, radius=${er}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
@@ -512,13 +601,22 @@ function generateCode(figs,joinAll,exportStl,exportPath){
       if(f.hollow){
         L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=${segs}, radius=${r}, depth=${h+2}, location=(${px},${py},${pz+h/2}))`);
         L.push(`${nm}_int = bpy.context.active_object`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
-        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}.select_set(True)`);
+        L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);
+        L.push(`mod.operation='DIFFERENCE'`);
+        L.push(`mod.object=${nm}_int`);
+        L.push(`mod.solver='${f.solver}'`);
         L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_int.select_set(True)`);
+        L.push(`bpy.ops.object.delete()`);
       }
-      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+      L.push(`${nm}.name="figura_${idx+1}"`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     else if(f.shape==='sphere'){
       const{r,segs}=f.dims;const er=f.hollow?r+w:r;
       L.push(`bpy.ops.mesh.primitive_uv_sphere_add(segments=${segs}, ring_count=${Math.floor(segs/2)}, radius=${er}, location=(${px},${py},${pz+er}))`);
@@ -526,23 +624,38 @@ function generateCode(figs,joinAll,exportStl,exportPath){
       if(f.hollow){
         L.push(`bpy.ops.mesh.primitive_uv_sphere_add(segments=${segs}, ring_count=${Math.floor(segs/2)}, radius=${r}, location=(${px},${py},${pz+er}))`);
         L.push(`${nm}_int = bpy.context.active_object`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
-        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}.select_set(True)`);
+        L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);
+        L.push(`mod.operation='DIFFERENCE'`);
+        L.push(`mod.object=${nm}_int`);
+        L.push(`mod.solver='${f.solver}'`);
         L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_int.select_set(True)`);
+        L.push(`bpy.ops.object.delete()`);
       }
-      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+      L.push(`${nm}.name="figura_${idx+1}"`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     else if(f.shape==='cone'){
       const{r1,r2,h,segs}=f.dims;
       L.push(`bpy.ops.mesh.primitive_cone_add(vertices=${segs}, radius1=${r1}, radius2=${r2}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
-      L.push(`${nm} = bpy.context.active_object`);L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+      L.push(`${nm} = bpy.context.active_object`);
+      L.push(`${nm}.name="figura_${idx+1}"`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     else if(f.shape==='torus'){
       const{maj,min:mn}=f.dims;
       L.push(`bpy.ops.mesh.primitive_torus_add(major_radius=${maj}, minor_radius=${mn}, location=(${px},${py},${pz+mn}))`);
-      L.push(`${nm} = bpy.context.active_object`);L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+      L.push(`${nm} = bpy.context.active_object`);
+      L.push(`${nm}.name="figura_${idx+1}"`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     else if(f.shape==='hex'){
       const{r,h}=f.dims;const er=f.hollow?r+w:r;
       L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=${er}, depth=${h}, location=(${px},${py},${pz+h/2}))`);
@@ -550,13 +663,22 @@ function generateCode(figs,joinAll,exportStl,exportPath){
       if(f.hollow){
         L.push(`bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=${r}, depth=${h+2}, location=(${px},${py},${pz+h/2}))`);
         L.push(`${nm}_int = bpy.context.active_object`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}.select_set(True)`);L.push(`bpy.context.view_layer.objects.active = ${nm}`);
-        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);L.push(`mod.operation='DIFFERENCE'`);L.push(`mod.object=${nm}_int`);L.push(`mod.solver='${f.solver}'`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}.select_set(True)`);
+        L.push(`bpy.context.view_layer.objects.active = ${nm}`);
+        L.push(`mod=${nm}.modifiers.new("hueco","BOOLEAN")`);
+        L.push(`mod.operation='DIFFERENCE'`);
+        L.push(`mod.object=${nm}_int`);
+        L.push(`mod.solver='${f.solver}'`);
         L.push(`bpy.ops.object.modifier_apply(modifier="hueco")`);
-        L.push(`bpy.ops.object.select_all(action='DESELECT')`);L.push(`${nm}_int.select_set(True)`);L.push(`bpy.ops.object.delete()`);
+        L.push(`bpy.ops.object.select_all(action='DESELECT')`);
+        L.push(`${nm}_int.select_set(True)`);
+        L.push(`bpy.ops.object.delete()`);
       }
-      L.push(`${nm}.name="figura_${idx+1}"`);L.push(`created_objects.append(${nm})`);
+      L.push(`${nm}.name="figura_${idx+1}"`);
+      L.push(`created_objects.append(${nm})`);
     }
+
     L.push('');
   });
 
@@ -566,19 +688,22 @@ function generateCode(figs,joinAll,exportStl,exportPath){
     L.push('for obj in created_objects: obj.select_set(True)');
     L.push('bpy.context.view_layer.objects.active = created_objects[0]');
     L.push('bpy.ops.object.join()');
-    L.push('bpy.context.active_object.name = "modelo_unido"');L.push('');
+    L.push('bpy.context.active_object.name = "modelo_unido"');
+    L.push('');
   }
 
   L.push('# ── Recalcular normales ──');
   L.push('bpy.ops.object.mode_set(mode="EDIT")');
   L.push('bpy.ops.mesh.select_all(action="SELECT")');
   L.push('bpy.ops.mesh.normals_make_consistent(inside=False)');
-  L.push('bpy.ops.object.mode_set(mode="OBJECT")');L.push('');
+  L.push('bpy.ops.object.mode_set(mode="OBJECT")');
+  L.push('');
 
   if(exportStl&&exportPath){
     L.push('# ── Exportar STL ──');
     L.push(`bpy.ops.export_mesh.stl(filepath="${exportPath}", use_selection=False, global_scale=1.0)`);
-    L.push(`print("STL exportado: ${exportPath}")`);L.push('');
+    L.push(`print("STL exportado: ${exportPath}")`);
+    L.push('');
   }
 
   L.push(`print("✅ ${figs.length} figura(s) creada(s). Toda geometría en Z >= 0.")`);
