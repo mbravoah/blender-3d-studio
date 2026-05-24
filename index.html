@@ -501,31 +501,65 @@ function draw(){
     ctx.strokeRect(cx+ws,cy+ws,pw-2*ws,ph-2*ws);
     ctx.setLineDash([]);
 
-    // Draw 4 walls — skip removed ones
-    ctx.strokeStyle=isSel?color:hexAlpha(color,.6);
-    ctx.lineWidth=isSel?2:1;
+    // Draw 4 walls — logic:
+    // For each side, check if a neighbor is touching AND also has that side removed.
+    // Both removed → draw nothing (continuous space)
+    // Only this one removed → draw nothing (open side, neighbor's wall covers it if it has one)
+    // Neither removed → draw solid line
+    // Only neighbor removed → draw solid line (this prisma's wall still exists)
 
-    // front wall = bottom edge of canvas rect (mmy = p.y, canvas bottom of rect)
     const [,frontY]=mmToCanvas(0,p.y);
     const [,backY]=mmToCanvas(0,p.y+p.ey);
     const [leftX]=mmToCanvas(p.x,0);
     const [rightX]=mmToCanvas(p.x+p.ex,0);
 
-    // back (top in canvas)
-    if(!rw.back){ ctx.beginPath();ctx.moveTo(leftX,backY);ctx.lineTo(rightX,backY);ctx.stroke(); }
-    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,backY);ctx.lineTo(rightX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+    const TOL=0.5; // mm tolerance for adjacency
 
-    // front (bottom in canvas)
-    if(!rw.front){ ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(rightX,frontY);ctx.stroke(); }
-    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(rightX,frontY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+    function neighborRemovedSide(side){
+      // returns true if there's a touching neighbor that also has 'side' removed
+      for(const n of prismas){
+        if(n.id===p.id) continue;
+        const nrw=n.removedWalls||{};
+        if(side==='front'){
+          // neighbor's back touches p's front (p.y === n.y+n.ey)
+          if(Math.abs(n.y+n.ey-p.y)<TOL && xOverlap(p,n) && nrw.back) return true;
+        } else if(side==='back'){
+          // neighbor's front touches p's back (p.y+p.ey === n.y)
+          if(Math.abs(n.y-p.y-p.ey)<TOL && xOverlap(p,n) && nrw.front) return true;
+        } else if(side==='left'){
+          // neighbor's right touches p's left (p.x === n.x+n.ex)
+          if(Math.abs(n.x+n.ex-p.x)<TOL && yOverlap(p,n) && nrw.right) return true;
+        } else if(side==='right'){
+          // neighbor's left touches p's right (p.x+p.ex === n.x)
+          if(Math.abs(n.x-p.x-p.ex)<TOL && yOverlap(p,n) && nrw.left) return true;
+        }
+      }
+      return false;
+    }
 
-    // left (left in canvas, X−)
-    if(!rw.left){ ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(leftX,backY);ctx.stroke(); }
-    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(leftX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+    function drawEdge(x1,y1,x2,y2,removed,neighborAlsoRemoved){
+      if(removed && neighborAlsoRemoved){
+        // Both open: draw faint continuity line
+        ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=0.5;ctx.setLineDash([]);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      } else if(removed){
+        // This side open, neighbor has wall: draw nothing (neighbor wall covers)
+        // Just show very faint dashed indicator
+        ctx.strokeStyle='rgba(255,107,107,0.2)';ctx.lineWidth=0.5;ctx.setLineDash([3,5]);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+        ctx.setLineDash([]);
+      } else {
+        // Wall exists: draw solid
+        ctx.strokeStyle=isSel?color:hexAlpha(color,.6);
+        ctx.lineWidth=isSel?2:1;ctx.setLineDash([]);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      }
+    }
 
-    // right (right in canvas, X+)
-    if(!rw.right){ ctx.beginPath();ctx.moveTo(rightX,frontY);ctx.lineTo(rightX,backY);ctx.stroke(); }
-    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(rightX,frontY);ctx.lineTo(rightX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+    drawEdge(leftX,backY,rightX,backY, rw.back, neighborRemovedSide('back'));
+    drawEdge(leftX,frontY,rightX,frontY, rw.front, neighborRemovedSide('front'));
+    drawEdge(leftX,frontY,leftX,backY, rw.left, neighborRemovedSide('left'));
+    drawEdge(rightX,frontY,rightX,backY, rw.right, neighborRemovedSide('right'));
 
     // Label
     ctx.fillStyle=isSel?color:hexAlpha(color,.75);
@@ -614,6 +648,8 @@ function hexAlpha(hex,a){
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
 }
+function xOverlap(a,b){ return a.x<b.x+b.ex && b.x<a.x+a.ex; }
+function yOverlap(a,b){ return a.y<b.y+b.ey && b.y<a.y+a.ey; }
 function bestGridStep(){
   const t=50/scale;
   for(const s of [1,2,5,10,20,50,100,200,500]) if(s>=t) return s;
@@ -761,16 +797,15 @@ function showRightTab(t){
   const ce=document.getElementById('rt-code');
   ce.style.display=t==='code'?'flex':'none';
   document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['list','code'][i]===t));
-  if(t==='code') generateAndShow();
 }
 
 // ═══ CODE GENERATION ═══
 function generateAndShow(){
+  showRightTab('code');
   if(!prismas.length){document.getElementById('code-out').textContent='— Sin prismas —';return;}
   const exportStl=document.getElementById('chk-export').checked;
   const exportPath=document.getElementById('export-path').value;
   document.getElementById('code-out').textContent=generateCode(exportStl,exportPath);
-  showRightTab('code');
 }
 
 function generateCode(exportStl,exportPath){
@@ -799,10 +834,13 @@ function generateCode(exportStl,exportPath){
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
   L.push('    cut.select_set(True); bpy.ops.object.delete()');
   L.push('    wall_cuts={');
-  L.push('        "front":(cx, y-0.5,      ez/2, ex+2, wall+1, ez+2),');
-  L.push('        "back": (cx, y+ey+0.5,   ez/2, ex+2, wall+1, ez+2),');
-  L.push('        "left": (x-0.5,    cy,   ez/2, wall+1, ey+2, ez+2),');
-  L.push('        "right":(x+ex+0.5, cy,   ez/2, wall+1, ey+2, ez+2),');
+  L.push('        # Each cutter starts at Z=-1 (below base) to cut the full wall');
+  L.push('        # from bottom to top including the corner at the base.');
+  L.push('        # Width/depth overshot by 1mm on each side for clean boolean.');
+  L.push('        "front":(cx,    y-0.5,      -1+(ez+2)/2, ex+2, wall+1, ez+4),');
+  L.push('        "back": (cx,    y+ey+0.5,   -1+(ez+2)/2, ex+2, wall+1, ez+4),');
+  L.push('        "left": (x-0.5, cy,         -1+(ez+2)/2, wall+1, ey+2, ez+4),');
+  L.push('        "right":(x+ex+0.5, cy,      -1+(ez+2)/2, wall+1, ey+2, ez+4),');
   L.push('    }');
   L.push('    for side in remove_walls:');
   L.push('        if side not in wall_cuts: continue');
