@@ -5,30 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blender 3D Studio</title>
 <style>
-:root {
-  --bg:#0f0f0f; --bg2:#1a1a1a; --bg3:#242424; --bg4:#2e2e2e;
-  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.14);
-  --text:#e0e0e0; --text2:#888; --text3:#444;
-  --accent:#e8ff47; --accent2:#b8cc1a;
-  --info:#47b8ff; --info-bg:rgba(71,184,255,0.1);
-  --success:#47ff9a; --success-bg:rgba(71,255,154,0.08);
-  --danger:#ff6b6b; --danger-bg:rgba(255,107,107,0.1);
-  --warn:#ffb347;
-  --r:8px; --rl:12px;
+:root{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#242424;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --text:#e0e0e0;--text2:#888;--text3:#444;
+  --accent:#e8ff47;--accent2:#b8cc1a;
+  --info:#47b8ff;--info-bg:rgba(71,184,255,0.1);
+  --success:#47ff9a;--success-bg:rgba(71,255,154,0.08);
+  --danger:#ff6b6b;--danger-bg:rgba(255,107,107,0.1);
+  --r:8px;--rl:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'SF Mono','Fira Code',monospace;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
 header{border-bottom:0.5px solid var(--border);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .logo{font-size:14px;font-weight:700;letter-spacing:-.02em}.logo span{color:var(--accent)}
 .logo-sub{font-size:10px;color:var(--text3);margin-top:1px;text-transform:uppercase;letter-spacing:.08em}
 .z-badge{display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--success-bg);border:0.5px solid rgba(71,255,154,.15);border-radius:var(--r);font-size:10px;color:var(--success)}
 .zdot{width:5px;height:5px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-.app{display:grid;grid-template-columns:300px 1fr 260px;flex:1;overflow:hidden}
-
-/* ── LEFT PANEL ── */
+.app{display:grid;grid-template-columns:300px 1fr 280px;flex:1;overflow:hidden}
 .left{border-right:0.5px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
 .psec{border-bottom:0.5px solid var(--border);padding:1rem 1.25rem}
 .stitle{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.75rem}
@@ -47,33 +42,27 @@ button:active{transform:scale(.97)}
 .btn-info:hover{border-color:var(--info)}
 .btn-danger{padding:4px 9px;background:var(--danger-bg);border:0.5px solid rgba(255,107,107,.2);color:var(--danger);font-size:11px}
 .btn-danger:hover{border-color:var(--danger)}
+.btn-active{background:var(--accent);color:#0f0f0f;border-color:var(--accent)}
 .hint{font-size:10px;color:var(--text3);margin-top:4px;line-height:1.5}
 .calc-bar{margin-top:8px;padding:7px 10px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text2)}
 .calc-bar span{color:var(--accent);font-weight:700}
 .action-bar{padding:1rem 1.25rem;border-top:0.5px solid var(--border);background:var(--bg);margin-top:auto}
-.divider{border:none;border-top:0.5px solid var(--border);margin:.75rem 0}
-
-/* ── CENTER CANVAS ── */
 .center{display:flex;flex-direction:column;background:var(--bg2);position:relative}
-.canvas-toolbar{border-bottom:0.5px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.canvas-toolbar{border-bottom:0.5px solid var(--border);padding:.5rem 1rem;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
 .canvas-wrap{flex:1;position:relative;overflow:hidden}
 #layout-canvas{display:block;cursor:default}
-.canvas-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);letter-spacing:.05em;pointer-events:none;white-space:nowrap}
-.zoom-row{display:flex;gap:5px;margin-left:auto}
-
-/* ── RIGHT PANEL ── */
+.canvas-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text3);pointer-events:none;white-space:nowrap}
+.zoom-row{display:flex;gap:4px;margin-left:auto}
 .right{border-left:0.5px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
 .prisma-item{padding:9px 12px;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;gap:8px;cursor:pointer;transition:background .1s}
 .prisma-item:hover{background:var(--bg3)}
-.prisma-item.selected{background:rgba(232,255,71,.05);border-left:2px solid var(--accent)}
-.pi-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0f0f0f;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.pi-info{flex:1}
+.prisma-item.selected{background:rgba(232,255,71,.05)}
+.pi-num{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#0f0f0f}
+.pi-info{flex:1;min-width:0}
 .pi-name{font-size:12px;font-weight:600;color:var(--text)}
 .pi-dims{font-size:10px;color:var(--text3);margin-top:2px}
 .pi-pos{font-size:10px;color:var(--text2);margin-top:1px}
 .empty-right{padding:2rem 1rem;text-align:center;color:var(--text3);font-size:12px;line-height:1.8}
-
-/* code tab */
 .tab-row{display:flex;gap:2px;background:var(--bg3);border-radius:var(--r);padding:3px}
 .tab{flex:1;padding:5px;text-align:center;background:transparent;border:none;color:var(--text2);border-radius:6px;font-size:11px}
 .tab.active{background:var(--bg2);color:var(--text);border:0.5px solid var(--border2)}
@@ -83,18 +72,19 @@ button:active{transform:scale(.97)}
 .wall-btn:hover{border-color:var(--text2)}
 .wall-btn.removed{background:var(--danger-bg);border-color:var(--danger)}
 .wall-btn.removed span{color:var(--danger)}
+.edit-walls{padding:10px 12px;background:var(--bg3);border-top:0.5px solid var(--border)}
+.tool-btn{padding:4px 10px;font-size:11px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);border-radius:var(--r)}
+.tool-btn.active{background:var(--accent);color:#0f0f0f;border-color:var(--accent);font-weight:700}
 </style>
 </head>
 <body>
-
 <header>
   <div><div class="logo">Blender <span>3D</span> Studio</div><div class="logo-sub">Layout Editor — Impresión 3D</div></div>
   <div class="z-badge"><div class="zdot"></div>Base en Z ≥ 0</div>
 </header>
-
 <div class="app">
 
-<!-- ══ LEFT: Crear prisma ══ -->
+<!-- LEFT -->
 <div class="left">
   <div class="psec">
     <div class="stitle">Nueva prisma</div>
@@ -105,65 +95,51 @@ button:active{transform:scale(.97)}
     </div>
     <div class="row2" style="margin-bottom:10px">
       <div><label>Pared (mm)</label><input type="number" id="n-w" value="3" min="0.5" step="0.5" oninput="refreshNew()"></div>
-      <div><label>Nombre</label><input type="text" id="n-name" value="P1" style="width:100%"></div>
+      <div><label>Nombre</label><input type="text" id="n-name" value="P1"></div>
     </div>
-    <div class="calc-bar">Ext: <span id="n-ext">34 × 21</span> mm &nbsp;|&nbsp; Int: <span id="n-int" style="color:var(--text2)">28 × 15</span> mm</div>
+    <div class="calc-bar">Ext: <span id="n-ext">34×21</span> mm | Int: <span id="n-int" style="color:var(--text2)">28×15</span> mm</div>
   </div>
 
   <div class="psec">
-    <div class="stitle">Paredes a eliminar</div>
-    <p class="hint" style="margin-bottom:10px">Clic para quitar una pared lateral. El fondo siempre presente. Útil para uniones entre prismas.</p>
-    <div style="display:flex;gap:16px;align-items:flex-start">
+    <div class="stitle">Paredes a eliminar (nueva)</div>
+    <p class="hint" style="margin-bottom:8px">Clic para quitar. Frente=Y−, Trasera=Y+, Izq=X−, Der=X+</p>
+    <div style="display:flex;gap:14px;align-items:flex-start">
       <div>
-        <!-- 3x3 grid representing top view of the box -->
         <div style="display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(3,36px);gap:3px">
-          <div style="background:transparent"></div>
-          <div class="wall-btn" id="w-front" onclick="toggleWall('front',this)" title="Pared frontal (−Y)">
-            <span>↑ Frt</span>
-          </div>
-          <div style="background:transparent"></div>
-          <div class="wall-btn" id="w-left" onclick="toggleWall('left',this)" title="Pared izquierda (−X)">
-            <span>← Izq</span>
-          </div>
-          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);display:flex;align-items:center;justify-content:center">
-            <span style="font-size:9px;color:var(--text3)">INT</span>
-          </div>
-          <div class="wall-btn" id="w-right" onclick="toggleWall('right',this)" title="Pared derecha (+X)">
-            <span>Der →</span>
-          </div>
-          <div style="background:transparent"></div>
-          <div class="wall-btn" id="w-back" onclick="toggleWall('back',this)" title="Pared trasera (+Y)">
-            <span>↓ Tras</span>
-          </div>
-          <div style="background:transparent"></div>
+          <div></div>
+          <div class="wall-btn" id="w-back" onclick="toggleWall('back',this)" title="Trasera +Y"><span>Tras↑</span></div>
+          <div></div>
+          <div class="wall-btn" id="w-left" onclick="toggleWall('left',this)" title="Izquierda −X"><span>←Izq</span></div>
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">INT</span></div>
+          <div class="wall-btn" id="w-right" onclick="toggleWall('right',this)" title="Derecha +X"><span>Der→</span></div>
+          <div></div>
+          <div class="wall-btn" id="w-front" onclick="toggleWall('front',this)" title="Frente −Y"><span>↓Frt</span></div>
+          <div></div>
         </div>
-        <p class="hint" style="margin-top:6px;max-width:120px">Rojo = eliminada</p>
+        <p class="hint" style="margin-top:5px">Rojo = eliminada</p>
       </div>
-      <div>
-        <label style="margin-bottom:5px">Accesos rápidos</label>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('none')">Todas las paredes</button>
-          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('front')">Sin frente</button>
-          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('back')">Sin trasera</button>
-          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('left')">Sin izquierda</button>
-          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('right')">Sin derecha</button>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="setWallPreset('none')">Todas</button>
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="setWallPreset('front')">Sin frente</button>
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="setWallPreset('back')">Sin trasera</button>
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="setWallPreset('left')">Sin izq</button>
+        <button class="btn" style="font-size:11px;padding:4px 8px" onclick="setWallPreset('right')">Sin der</button>
       </div>
     </div>
   </div>
 
   <div class="psec">
-    <div class="stitle">Grosor solver</div>
+    <div class="stitle">Solver</div>
     <select id="n-solver">
-      <option value="EXACT">EXACT (recomendado 3D)</option>
+      <option value="EXACT">EXACT (recomendado)</option>
       <option value="FAST">FAST</option>
     </select>
   </div>
 
   <div class="psec">
-    <div class="stitle">Opciones de exportación</div>
+    <div class="stitle">Exportación STL</div>
     <label style="display:flex;align-items:center;gap:7px;cursor:pointer;margin:0">
-      <input type="checkbox" id="chk-export"> Exportar STL automáticamente
+      <input type="checkbox" id="chk-export"> Incluir en script
     </label>
     <div id="export-row" style="display:none;margin-top:8px">
       <label>Ruta STL</label>
@@ -174,29 +150,32 @@ button:active{transform:scale(.97)}
   <div class="action-bar">
     <button class="btn-accent" style="width:100%" onclick="addPrisma()">+ Agregar al layout</button>
     <div style="display:flex;gap:6px;margin-top:8px">
-      <button class="btn btn-info" style="flex:1" onclick="generateAndShow()">Generar código →</button>
+      <button class="btn btn-info" style="flex:1" onclick="generateAndShow()">Código →</button>
       <button class="btn" onclick="clearAll()">Limpiar</button>
     </div>
     <div style="display:flex;gap:6px;margin-top:6px">
-      <button class="btn" style="flex:1;font-size:11px" onclick="exportProject()">↓ Guardar proyecto</button>
-      <button class="btn" style="flex:1;font-size:11px" onclick="document.getElementById('import-input').click()">↑ Cargar proyecto</button>
+      <button class="btn" style="flex:1;font-size:11px" onclick="exportProject()">↓ Guardar</button>
+      <button class="btn" style="flex:1;font-size:11px" onclick="document.getElementById('import-input').click()">↑ Cargar</button>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importProject(event)">
     </div>
   </div>
 </div>
 
-<!-- ══ CENTER: Layout canvas ══ -->
+<!-- CENTER -->
 <div class="center">
   <div class="canvas-toolbar">
-    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Layout — vista superior (mm)</span>
-    <div style="font-size:10px;color:var(--text2);margin-left:8px" id="canvas-info">Sin prismas</div>
-    <div id="selected-actions" style="display:none;margin-left:8px">
-      <button class="btn-danger" style="padding:3px 10px;font-size:11px" onclick="deleteSelected()">✕ Eliminar seleccionada</button>
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Vista superior</span>
+    <div style="font-size:10px;color:var(--text2)" id="canvas-info">Sin prismas</div>
+    <div id="selected-actions" style="display:none;gap:5px;display:none">
+      <button class="tool-btn btn-danger" onclick="deleteSelected()">✕ Eliminar</button>
     </div>
+    <!-- Tool buttons -->
+    <button class="tool-btn" id="tool-select" onclick="setTool('select')" title="Seleccionar/Mover">↖ Mover</button>
+    <button class="tool-btn" id="tool-measure" onclick="setTool('measure')" title="Medir distancia">⟷ Medir</button>
     <div class="zoom-row">
-      <button class="btn" style="padding:3px 9px;font-size:11px" onclick="zoom(1.2)">+</button>
-      <button class="btn" style="padding:3px 9px;font-size:11px" onclick="zoom(0.8)">−</button>
-      <button class="btn" style="padding:3px 9px;font-size:11px" onclick="resetView()">⊡</button>
+      <button class="tool-btn" onclick="zoom(1.2)">+</button>
+      <button class="tool-btn" onclick="zoom(0.8)">−</button>
+      <button class="tool-btn" onclick="resetView()">⊡</button>
     </div>
   </div>
   <div class="canvas-wrap">
@@ -205,7 +184,7 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- ══ RIGHT: Lista + código ══ -->
+<!-- RIGHT -->
 <div class="right">
   <div style="padding:.75rem 1rem;border-bottom:0.5px solid var(--border)">
     <div class="tab-row">
@@ -213,65 +192,68 @@ button:active{transform:scale(.97)}
       <button class="tab" onclick="showRightTab('code')">Código</button>
     </div>
   </div>
-
   <div id="rt-list" style="flex:1;overflow-y:auto">
     <div class="empty-right" id="list-empty">Sin prismas.<br>Agrega desde el panel izquierdo.</div>
     <div id="prisma-list"></div>
+    <!-- Edit walls panel for selected prisma -->
+    <div id="edit-walls-panel" style="display:none;padding:10px 12px;border-top:0.5px solid var(--border);background:var(--bg3)">
+      <div class="stitle" style="margin-bottom:8px">Editar paredes — <span id="edit-walls-name" style="color:var(--accent)"></span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(3,36px);gap:3px;margin-bottom:6px">
+        <div></div>
+        <div class="wall-btn" id="ew-back" onclick="toggleEditWall('back')"><span>Tras↑</span></div>
+        <div></div>
+        <div class="wall-btn" id="ew-left" onclick="toggleEditWall('left')"><span>←Izq</span></div>
+        <div style="background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--r);display:flex;align-items:center;justify-content:center"><span style="font-size:9px;color:var(--text3)">INT</span></div>
+        <div class="wall-btn" id="ew-right" onclick="toggleEditWall('right')"><span>Der→</span></div>
+        <div></div>
+        <div class="wall-btn" id="ew-front" onclick="toggleEditWall('front')"><span>↓Frt</span></div>
+        <div></div>
+      </div>
+      <p class="hint">Rojo = eliminada. Cambios inmediatos.</p>
+    </div>
   </div>
-
   <div id="rt-code" style="display:none;flex:1;flex-direction:column;padding:.75rem;gap:.5rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Script Blender</span>
       <div style="display:flex;gap:5px">
-        <button class="btn-info btn" style="padding:3px 9px;font-size:11px" onclick="copyCode()" id="copy-btn">Copiar</button>
-        <button class="btn" style="padding:3px 9px;font-size:11px" onclick="downloadCode()">↓ .py</button>
+        <button class="tool-btn" style="color:var(--info);border-color:rgba(71,184,255,.3)" onclick="copyCode()" id="copy-btn">Copiar</button>
+        <button class="tool-btn" onclick="downloadCode()">↓ .py</button>
       </div>
     </div>
     <div class="code-area" id="code-out">— Genera el código desde el panel izquierdo —</div>
     <p class="hint">Blender → Scripting → New → pegar → Alt+P</p>
   </div>
 </div>
-
-</div><!-- .app -->
+</div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
-let prismas = [];   // {id, name, ix, iy, iz, wall, solver, x, y, removedWalls}
-let nextId = 1;
-let nameCounter = 1;
-const removedWalls = {front:false, back:false, left:false, right:false};
+// ═══ STATE ═══
+let prismas = [];
+let nextId = 1, nameCounter = 1;
+const newRemovedWalls = {front:false,back:false,left:false,right:false};
 
-function toggleWall(side, el){
-  removedWalls[side] = !removedWalls[side];
-  el.classList.toggle('removed', removedWalls[side]);
-}
-
-function setWallPreset(preset){
-  ['front','back','left','right'].forEach(s=>{
-    removedWalls[s] = preset===s;
-    const el=document.getElementById('w-'+s);
-    if(el) el.classList.toggle('removed', removedWalls[s]);
-  });
-}
-
-// Canvas state
+// Canvas
 let canvas, ctx;
-let scale = 4;        // px per mm
-let panX = 40, panY = 40;  // canvas offset px
-let dragging = null;  // {id, offX, offY}
-let hoverId = null;
-let selectedId = null;
+let scale = 4, panX = 60, panY = 60;
+let dragging = null, hoverId = null, selectedId = null;
 
-// Colors per prisma
+// Tool: 'select' | 'measure'
+let currentTool = 'select';
+let measurePts = [];   // [{mmx, mmy}]  max 2
+let measureSnap = null; // current snap point while hovering
+
 const COLORS = ['#e8ff47','#47b8ff','#47ff9a','#ff9f47','#ff47b8','#b847ff','#47ffe8','#ffb347'];
-function colorOf(idx){ return COLORS[idx % COLORS.length]; }
+function colorOf(i){ return COLORS[i % COLORS.length]; }
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-window.addEventListener('load', ()=>{
+// ═══ CANVAS COORDINATE SYSTEM ═══
+// X: left=negative, right=positive  (standard, NO mirror)
+// Y: up in canvas = positive mm, down = negative mm  (flip Y so +Y=back, -Y=front)
+// mmToCanvas: cx = panX + mmx*scale,  cy = panY - mmy*scale
+function mmToCanvas(mmx, mmy){ return [panX + mmx*scale, panY - mmy*scale]; }
+function canvasToMm(cx, cy){ return [(cx-panX)/scale, -(cy-panY)/scale]; }
+
+// ═══ INIT ═══
+window.addEventListener('load',()=>{
   canvas = document.getElementById('layout-canvas');
   ctx = canvas.getContext('2d');
   resizeCanvas();
@@ -279,365 +261,421 @@ window.addEventListener('load', ()=>{
   canvas.addEventListener('mousedown', onMouseDown);
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mouseup', onMouseUp);
-  canvas.addEventListener('mouseleave', onMouseUp);
+  canvas.addEventListener('mouseleave', onMouseLeave);
   canvas.addEventListener('wheel', onWheel, {passive:false});
-  document.getElementById('chk-export').addEventListener('change', function(){
-    document.getElementById('export-row').style.display = this.checked ? 'block' : 'none';
+  document.getElementById('chk-export').addEventListener('change',function(){
+    document.getElementById('export-row').style.display=this.checked?'block':'none';
   });
+  setTool('select');
   refreshNew();
   draw();
 });
 
 function resizeCanvas(){
-  const wrap = canvas.parentElement;
-  canvas.width  = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
+  const w = canvas.parentElement;
+  canvas.width = w.clientWidth;
+  canvas.height = w.clientHeight;
   draw();
 }
 
-// ═══════════════════════════════════════════════════════
-// PRISMA MANAGEMENT
-// ═══════════════════════════════════════════════════════
-function refreshNew(){
-  const ix = parseFloat(document.getElementById('n-x').value)||28;
-  const iy = parseFloat(document.getElementById('n-y').value)||15;
-  const w  = parseFloat(document.getElementById('n-w').value)||3;
-  document.getElementById('n-ext').textContent = `${ix+2*w} × ${iy+2*w}`;
-  document.getElementById('n-int').textContent = `${ix} × ${iy}`;
+// ═══ TOOLS ═══
+function setTool(t){
+  currentTool = t;
+  measurePts = [];
+  measureSnap = null;
+  document.getElementById('tool-select').classList.toggle('active', t==='select');
+  document.getElementById('tool-measure').classList.toggle('active', t==='measure');
+  canvas.style.cursor = t==='measure' ? 'crosshair' : 'default';
+  draw();
 }
 
-function addPrisma(){
-  const ix   = parseFloat(document.getElementById('n-x').value)||28;
-  const iy   = parseFloat(document.getElementById('n-y').value)||15;
-  const iz   = parseFloat(document.getElementById('n-z').value)||65;
-  const wall = parseFloat(document.getElementById('n-w').value)||3;
-  const solver = document.getElementById('n-solver').value;
-  const name = document.getElementById('n-name').value.trim() || `P${nameCounter}`;
-  nameCounter++;
-  document.getElementById('n-name').value = `P${nameCounter}`;
+// ═══ SNAP POINTS ═══
+// Returns all corner/midpoint snap candidates in mm
+function getSnapPoints(){
+  const pts = [];
+  prismas.forEach(p=>{
+    const x0=p.x, x1=p.x+p.ex, y0=p.y, y1=p.y+p.ey;
+    const mx=(x0+x1)/2, my=(y0+y1)/2;
+    // corners
+    pts.push({mmx:x0,mmy:y0},{mmx:x1,mmy:y0},{mmx:x1,mmy:y1},{mmx:x0,mmy:y1});
+    // edge midpoints
+    pts.push({mmx:mx,mmy:y0},{mmx:mx,mmy:y1},{mmx:x0,mmy:my},{mmx:x1,mmy:my});
+    // center
+    pts.push({mmx:mx,mmy:my});
+  });
+  return pts;
+}
 
-  const ex = ix + 2*wall;
-  const ey = iy + 2*wall;
-
-  let px = 0, py = 0;
-  if(prismas.length > 0){
-    const maxRight = Math.max(...prismas.map(p => p.x + p.ex));
-    px = maxRight;
-    py = 0;
+function findNearestSnap(cx, cy, threshPx=14){
+  const [mmx,mmy] = canvasToMm(cx,cy);
+  let best=null, bestD=Infinity;
+  for(const pt of getSnapPoints()){
+    const [px,py] = mmToCanvas(pt.mmx, pt.mmy);
+    const d = Math.hypot(cx-px, cy-py);
+    if(d < threshPx && d < bestD){ bestD=d; best=pt; }
   }
+  return best;
+}
 
-  // Snapshot current wall removal state
-  const walls = {...removedWalls};
+// ═══ NEW PRISMA FORM ═══
+function refreshNew(){
+  const ix=parseFloat(document.getElementById('n-x').value)||28;
+  const iy=parseFloat(document.getElementById('n-y').value)||15;
+  const w=parseFloat(document.getElementById('n-w').value)||3;
+  document.getElementById('n-ext').textContent=`${ix+2*w}×${iy+2*w}`;
+  document.getElementById('n-int').textContent=`${ix}×${iy}`;
+}
 
-  prismas.push({id:nextId++, name, ix, iy, iz, wall, solver, ex, ey, x:px, y:py, removedWalls:walls});
-  renderList();
-  draw();
-  updateCanvasInfo();
-  document.getElementById('canvas-hint').style.display = 'none';
+function toggleWall(side, el){
+  newRemovedWalls[side]=!newRemovedWalls[side];
+  el.classList.toggle('removed', newRemovedWalls[side]);
+}
+function setWallPreset(preset){
+  ['front','back','left','right'].forEach(s=>{
+    newRemovedWalls[s]=preset===s;
+    const el=document.getElementById('w-'+s);
+    if(el) el.classList.toggle('removed',newRemovedWalls[s]);
+  });
+}
 
-  // Reset wall selector for next prisma
+// ═══ ADD PRISMA ═══
+function addPrisma(){
+  const ix=parseFloat(document.getElementById('n-x').value)||28;
+  const iy=parseFloat(document.getElementById('n-y').value)||15;
+  const iz=parseFloat(document.getElementById('n-z').value)||65;
+  const wall=parseFloat(document.getElementById('n-w').value)||3;
+  const solver=document.getElementById('n-solver').value;
+  const name=document.getElementById('n-name').value.trim()||`P${nameCounter}`;
+  nameCounter++;
+  document.getElementById('n-name').value=`P${nameCounter}`;
+  const ex=ix+2*wall, ey=iy+2*wall;
+  // Place to the right of existing
+  let px=0,py=0;
+  if(prismas.length){ px=Math.max(...prismas.map(p=>p.x+p.ex)); py=0; }
+  prismas.push({id:nextId++,name,ix,iy,iz,wall,solver,ex,ey,x:px,y:py,
+    removedWalls:{...newRemovedWalls}});
   setWallPreset('none');
+  renderList(); draw(); updateCanvasInfo();
+  document.getElementById('canvas-hint').style.display='none';
 }
 
 function removePrisma(id){
-  prismas = prismas.filter(p=>p.id!==id);
-  if(selectedId===id) selectedId=null;
-  renderList();
-  draw();
-  updateCanvasInfo();
+  prismas=prismas.filter(p=>p.id!==id);
+  if(selectedId===id){selectedId=null;updateEditWallsPanel();}
+  renderList(); draw(); updateCanvasInfo();
   if(!prismas.length) document.getElementById('canvas-hint').style.display='block';
 }
 
 function clearAll(){
-  prismas=[];selectedId=null;dragging=null;nextId=1;nameCounter=1;
+  prismas=[];selectedId=null;nextId=1;nameCounter=1;
   document.getElementById('n-name').value='P1';
-  renderList();draw();updateCanvasInfo();
+  updateEditWallsPanel();
+  renderList(); draw(); updateCanvasInfo();
   document.getElementById('canvas-hint').style.display='block';
 }
 
 function updateCanvasInfo(){
-  const el = document.getElementById('canvas-info');
+  const el=document.getElementById('canvas-info');
   if(!prismas.length){el.textContent='Sin prismas';return;}
-  const minX = Math.min(...prismas.map(p=>p.x));
-  const minY = Math.min(...prismas.map(p=>p.y));
-  const maxX = Math.max(...prismas.map(p=>p.x+p.ex));
-  const maxY = Math.max(...prismas.map(p=>p.y+p.ey));
-  el.textContent = `${prismas.length} prisma(s) — bounding box: ${Math.round(maxX-minX)} × ${Math.round(maxY-minY)} mm`;
+  const minX=Math.min(...prismas.map(p=>p.x));
+  const maxX=Math.max(...prismas.map(p=>p.x+p.ex));
+  const minY=Math.min(...prismas.map(p=>p.y));
+  const maxY=Math.max(...prismas.map(p=>p.y+p.ey));
+  el.textContent=`${prismas.length} prisma(s) — ${Math.round(maxX-minX)}×${Math.round(maxY-minY)}mm`;
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER LIST
-// ═══════════════════════════════════════════════════════
+// ═══ EDIT WALLS (existing prisma) ═══
+function updateEditWallsPanel(){
+  const panel=document.getElementById('edit-walls-panel');
+  const selAct=document.getElementById('selected-actions');
+  if(!selectedId){
+    panel.style.display='none';
+    selAct.style.display='none';
+    return;
+  }
+  const p=prismas.find(p=>p.id===selectedId);
+  if(!p){panel.style.display='none';selAct.style.display='none';return;}
+  panel.style.display='block';
+  selAct.style.display='flex';
+  document.getElementById('edit-walls-name').textContent=p.name;
+  ['front','back','left','right'].forEach(s=>{
+    const el=document.getElementById('ew-'+s);
+    if(el) el.classList.toggle('removed', !!(p.removedWalls||{})[s]);
+  });
+}
+
+function toggleEditWall(side){
+  const p=prismas.find(p=>p.id===selectedId);
+  if(!p) return;
+  if(!p.removedWalls) p.removedWalls={front:false,back:false,left:false,right:false};
+  p.removedWalls[side]=!p.removedWalls[side];
+  const el=document.getElementById('ew-'+side);
+  if(el) el.classList.toggle('removed', p.removedWalls[side]);
+  renderList(); draw();
+}
+
+// ═══ SELECT ═══
+function selectPrisma(id){
+  selectedId=id;
+  updateEditWallsPanel();
+  renderList(); draw();
+}
+function deleteSelected(){
+  if(selectedId) removePrisma(selectedId);
+}
+
+// ═══ RENDER LIST ═══
 function renderList(){
-  const el = document.getElementById('prisma-list');
-  const empty = document.getElementById('list-empty');
+  const el=document.getElementById('prisma-list');
+  const empty=document.getElementById('list-empty');
   if(!prismas.length){empty.style.display='block';el.innerHTML='';return;}
   empty.style.display='none';
-  el.innerHTML = prismas.map((p,i)=>{
-    const rw = Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>k);
-    const wallsLabel = rw.length ? `<span style="color:var(--danger);font-size:10px"> — sin: ${rw.join(', ')}</span>` : '';
-    return `
-    <div class="prisma-item ${selectedId===p.id?'selected':''}" onclick="selectPrisma(${p.id})" style="border-left:2px solid ${colorOf(i)}">
-      <div class="pi-num" style="background:${colorOf(i)};color:#0f0f0f">${i+1}</div>
+  el.innerHTML=prismas.map((p,i)=>{
+    const rw=Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>k);
+    const wl=rw.length?`<span style="color:var(--danger);font-size:10px"> sin: ${rw.join(', ')}</span>`:'';
+    const border=selectedId===p.id?`border-left:3px solid ${colorOf(i)}`:`border-left:3px solid transparent`;
+    return `<div class="prisma-item ${selectedId===p.id?'selected':''}" onclick="selectPrisma(${p.id})" style="${border}">
+      <div class="pi-num" style="background:${colorOf(i)}">${i+1}</div>
       <div class="pi-info">
-        <div class="pi-name">${p.name}${wallsLabel}</div>
-        <div class="pi-dims">Int: ${p.ix}×${p.iy}×${p.iz}mm | Ext: ${p.ex}×${p.ey}mm | Pared: ${p.wall}mm</div>
-        <div class="pi-pos">Pos: x=${Math.round(p.x)} y=${Math.round(p.y)}</div>
+        <div class="pi-name">${p.name}${wl}</div>
+        <div class="pi-dims">Int: ${p.ix}×${p.iy}×${p.iz}mm | Pared: ${p.wall}mm</div>
+        <div class="pi-pos">x=${Math.round(p.x)} y=${Math.round(p.y)}</div>
       </div>
       <button class="btn-danger" onclick="event.stopPropagation();removePrisma(${p.id})">✕</button>
-    </div>
-  `}).join('');
+    </div>`;
+  }).join('');
+  updateEditWallsPanel();
 }
 
-function selectPrisma(id){
-  selectedId = id;
-  document.getElementById('selected-actions').style.display = id ? 'block' : 'none';
-  renderList();
-  draw();
-}
-
-function deleteSelected(){
-  if(!selectedId) return;
-  removePrisma(selectedId);
-  selectedId = null;
-  document.getElementById('selected-actions').style.display = 'none';
-}
-
-// ═══════════════════════════════════════════════════════
-// CANVAS DRAW
-// ═══════════════════════════════════════════════════════
-function mmToCanvas(mmx, mmy){
-  return [panX + mmx * scale, panY + mmy * scale];
-}
-function canvasToMm(cx, cy){
-  return [(cx - panX)/scale, (cy - panY)/scale];
-}
-
+// ═══ DRAW ═══
 function draw(){
   if(!ctx) return;
-  const W = canvas.width, H = canvas.height;
+  const W=canvas.width, H=canvas.height;
   ctx.clearRect(0,0,W,H);
-
-  // Background
-  ctx.fillStyle = '#0f0f0f';
-  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#0f0f0f'; ctx.fillRect(0,0,W,H);
 
   // Grid
-  const gridMm = bestGridStep();
-  const startX = Math.floor(-panX/scale/gridMm)*gridMm;
-  const startY = Math.floor(-panY/scale/gridMm)*gridMm;
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 0.5;
-  for(let gx=startX; gx < (W-panX)/scale+gridMm; gx+=gridMm){
-    const cx = panX + gx*scale;
-    ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  const gs=bestGridStep();
+  // find range in mm visible
+  const [mmx0,mmy0]=canvasToMm(0,H);
+  const [mmx1,mmy1]=canvasToMm(W,0);
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=0.5;
+  for(let gx=Math.floor(mmx0/gs)*gs; gx<=mmx1+gs; gx+=gs){
+    const [cx]=mmToCanvas(gx,0); ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
   }
-  for(let gy=startY; gy < (H-panY)/scale+gridMm; gy+=gridMm){
-    const cy = panY + gy*scale;
-    ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  for(let gy=Math.floor(mmy0/gs)*gs; gy<=mmy1+gs; gy+=gs){
+    const [,cy]=mmToCanvas(0,gy); ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
   }
 
   // Axes
-  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=0.5;
-  ctx.beginPath();ctx.moveTo(panX,0);ctx.lineTo(panX,H);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,panY);ctx.lineTo(W,panY);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=0.5;
+  const [ox,oy]=mmToCanvas(0,0);
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
 
-  // Origin label
-  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='9px monospace';
-  ctx.fillText('0,0', panX+3, panY-4);
+  // Axis labels
+  ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='9px monospace';
+  ctx.fillText('+X →',ox+4,oy-4);
+  ctx.fillText('+Y ↑',ox+4,oy-14);
+  ctx.fillText('0,0',ox+3,oy+11);
 
-  // Draw prismas
+  // Prismas
   prismas.forEach((p,i)=>{
-    const [cx,cy] = mmToCanvas(p.x, p.y);
-    const pw = p.ex * scale;
-    const ph = p.ey * scale;
-    const color = colorOf(i);
-    const isSelected = selectedId === p.id;
-    const isHover = hoverId === p.id;
+    const color=colorOf(i);
+    const isSel=selectedId===p.id;
+    const isHov=hoverId===p.id;
+    const rw=p.removedWalls||{};
+
+    // Canvas rect: x increases rightward, y increases upward (we flip)
+    const [cx,cy]=mmToCanvas(p.x, p.y+p.ey); // top-left in canvas = (x, y+ey) in mm
+    const pw=p.ex*scale;
+    const ph=p.ey*scale;
 
     // Fill
-    ctx.fillStyle = isSelected
-      ? hexToRgba(color, 0.18)
-      : isHover
-        ? hexToRgba(color, 0.1)
-        : hexToRgba(color, 0.07);
-    ctx.fillRect(cx, cy, pw, ph);
+    ctx.fillStyle=isSel?hexAlpha(color,.18):isHov?hexAlpha(color,.1):hexAlpha(color,.07);
+    ctx.fillRect(cx,cy,pw,ph);
 
-    // Border
-    ctx.strokeStyle = isSelected ? color : hexToRgba(color, 0.5);
-    ctx.lineWidth = isSelected ? 1.5 : 0.8;
-    ctx.strokeRect(cx, cy, pw, ph);
-
-    // Wall indicator (inner rect)
-    const ws = p.wall * scale;
-    ctx.strokeStyle = hexToRgba(color, 0.2);
-    ctx.lineWidth = 0.5;
-    ctx.setLineDash([3,3]);
-    ctx.strokeRect(cx+ws, cy+ws, pw-2*ws, ph-2*ws);
+    // Wall thickness indicator (inner dashed rect)
+    const ws=p.wall*scale;
+    ctx.strokeStyle=hexAlpha(color,.2);ctx.lineWidth=0.5;ctx.setLineDash([3,3]);
+    ctx.strokeRect(cx+ws,cy+ws,pw-2*ws,ph-2*ws);
     ctx.setLineDash([]);
 
+    // Draw 4 walls — skip removed ones
+    ctx.strokeStyle=isSel?color:hexAlpha(color,.6);
+    ctx.lineWidth=isSel?2:1;
+
+    // front wall = bottom edge of canvas rect (mmy = p.y, canvas bottom of rect)
+    const [,frontY]=mmToCanvas(0,p.y);
+    const [,backY]=mmToCanvas(0,p.y+p.ey);
+    const [leftX]=mmToCanvas(p.x,0);
+    const [rightX]=mmToCanvas(p.x+p.ex,0);
+
+    // back (top in canvas)
+    if(!rw.back){ ctx.beginPath();ctx.moveTo(leftX,backY);ctx.lineTo(rightX,backY);ctx.stroke(); }
+    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,backY);ctx.lineTo(rightX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+
+    // front (bottom in canvas)
+    if(!rw.front){ ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(rightX,frontY);ctx.stroke(); }
+    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(rightX,frontY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+
+    // left (left in canvas, X−)
+    if(!rw.left){ ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(leftX,backY);ctx.stroke(); }
+    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(leftX,frontY);ctx.lineTo(leftX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+
+    // right (right in canvas, X+)
+    if(!rw.right){ ctx.beginPath();ctx.moveTo(rightX,frontY);ctx.lineTo(rightX,backY);ctx.stroke(); }
+    else { ctx.strokeStyle='rgba(255,107,107,0.25)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(rightX,frontY);ctx.lineTo(rightX,backY);ctx.stroke();ctx.setLineDash([]);ctx.strokeStyle=isSel?color:hexAlpha(color,.6); }
+
     // Label
-    ctx.fillStyle = isSelected ? color : hexToRgba(color, 0.7);
-    ctx.font = `${Math.max(9, Math.min(13, pw/4))}px monospace`;
-    const label = p.name;
-    const tw = ctx.measureText(label).width;
-    if(tw < pw - 8){
-      ctx.fillText(label, cx + pw/2 - tw/2, cy + ph/2 + 4);
+    ctx.fillStyle=isSel?color:hexAlpha(color,.75);
+    ctx.font=`${Math.max(9,Math.min(13,pw/5))}px monospace`;
+    const lbl=p.name;
+    const tw=ctx.measureText(lbl).width;
+    if(tw<pw-8) ctx.fillText(lbl,cx+pw/2-tw/2,cy+ph/2+4);
+
+    // Dim labels
+    if(pw>40){
+      ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='9px monospace';
+      const dx=`${p.ix}`;
+      ctx.fillText(dx,cx+pw/2-ctx.measureText(dx).width/2,cy+ph+11);
+    }
+    if(ph>30){
+      ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='9px monospace';
+      const dy=`${p.iy}`;
+      ctx.save();ctx.translate(cx-11,cy+ph/2);ctx.rotate(-Math.PI/2);
+      ctx.fillText(dy,-ctx.measureText(dy).width/2,0);ctx.restore();
     }
 
-    // Dimension labels
-    if(pw > 50){
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.font = '9px monospace';
-      const dimX = `${p.ix}mm`;
-      const dimY = `${p.iy}mm`;
-      ctx.fillText(dimX, cx + pw/2 - ctx.measureText(dimX).width/2, cy + ph + 11);
-      ctx.save();
-      ctx.translate(cx - 11, cy + ph/2);
-      ctx.rotate(-Math.PI/2);
-      ctx.fillText(dimY, -ctx.measureText(dimY).width/2, 0);
-      ctx.restore();
-    }
-
-    // Z height badge
-    if(isSelected || isHover){
-      ctx.fillStyle = 'rgba(0,0,0,0.7)';
-      const badge = `Z:${p.iz}mm`;
-      const bw = ctx.measureText(badge).width + 10;
-      ctx.fillRect(cx+pw-bw-2, cy+2, bw, 16);
-      ctx.fillStyle = color;
-      ctx.font = '9px monospace';
-      ctx.fillText(badge, cx+pw-bw+3, cy+13);
+    // Z badge
+    if(isSel||isHov){
+      const badge=`Z:${p.iz}`;
+      ctx.font='9px monospace';
+      const bw=ctx.measureText(badge).width+10;
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(cx+pw-bw-2,cy+2,bw,16);
+      ctx.fillStyle=color;ctx.fillText(badge,cx+pw-bw+4,cy+13);
     }
   });
 
-  // Snap preview line when dragging
-  if(dragging){
-    const dp = prismas.find(p=>p.id===dragging.id);
-    if(dp){
-      const snapResult = findSnap(dp, dp.id);
-      if(snapResult){
-        ctx.strokeStyle='rgba(232,255,71,0.4)';
-        ctx.lineWidth=1;
-        ctx.setLineDash([4,4]);
-        const [sx,sy]=mmToCanvas(snapResult.x, snapResult.y);
-        ctx.strokeRect(sx, sy, dp.ex*scale, dp.ey*scale);
+  // Snap points when in measure mode
+  if(currentTool==='measure'){
+    const pts=getSnapPoints();
+    pts.forEach(pt=>{
+      const [cx,cy]=mmToCanvas(pt.mmx,pt.mmy);
+      ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.5;
+      ctx.strokeRect(cx-3,cy-3,6,6);
+    });
+    // Hover snap highlight
+    if(measureSnap){
+      const [cx,cy]=mmToCanvas(measureSnap.mmx,measureSnap.mmy);
+      ctx.strokeStyle=colorOf(0);ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);ctx.stroke();
+    }
+    // Placed points
+    measurePts.forEach((pt,i)=>{
+      const [cx,cy]=mmToCanvas(pt.mmx,pt.mmy);
+      ctx.fillStyle=colorOf(0);
+      ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0f0f0f';ctx.font='bold 9px monospace';
+      ctx.fillText(i===0?'A':'B',cx-3,cy+3);
+    });
+    // Measurement line
+    if(measurePts.length===2){
+      const [ax,ay]=mmToCanvas(measurePts[0].mmx,measurePts[0].mmy);
+      const [bx,by]=mmToCanvas(measurePts[1].mmx,measurePts[1].mmy);
+      ctx.strokeStyle=colorOf(0);ctx.lineWidth=1;ctx.setLineDash([5,3]);
+      ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
+      ctx.setLineDash([]);
+      const dist=Math.sqrt((measurePts[1].mmx-measurePts[0].mmx)**2+(measurePts[1].mmy-measurePts[0].mmy)**2);
+      const dx=Math.abs(measurePts[1].mmx-measurePts[0].mmx);
+      const dy=Math.abs(measurePts[1].mmy-measurePts[0].mmy);
+      const mx=(ax+bx)/2,my=(ay+by)/2;
+      const label=`${dist.toFixed(1)}mm (Δx:${dx.toFixed(1)} Δy:${dy.toFixed(1)})`;
+      ctx.font='11px monospace';
+      const lw=ctx.measureText(label).width+12;
+      ctx.fillStyle='rgba(0,0,0,.85)';ctx.fillRect(mx-lw/2,my-18,lw,20);
+      ctx.fillStyle=colorOf(0);ctx.fillText(label,mx-lw/2+6,my-4);
+    }
+    // Live line to cursor
+    if(measurePts.length===1){
+      const snap=measureSnap;
+      if(snap){
+        const [ax,ay]=mmToCanvas(measurePts[0].mmx,measurePts[0].mmy);
+        const [bx,by]=mmToCanvas(snap.mmx,snap.mmy);
+        ctx.strokeStyle=hexAlpha(colorOf(0),.4);ctx.lineWidth=1;ctx.setLineDash([3,4]);
+        ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();
         ctx.setLineDash([]);
       }
     }
   }
 }
 
+function hexAlpha(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
 function bestGridStep(){
-  // Pick a grid step that gives ~40-80px between lines
-  const targetPx = 50;
-  const rawMm = targetPx / scale;
-  const steps = [1,2,5,10,20,50,100,200,500];
-  return steps.find(s=>s>=rawMm) || 500;
+  const t=50/scale;
+  for(const s of [1,2,5,10,20,50,100,200,500]) if(s>=t) return s;
+  return 500;
 }
 
-function hexToRgba(hex, alpha){
-  const r=parseInt(hex.slice(1,3),16);
-  const g=parseInt(hex.slice(3,5),16);
-  const b=parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// ═══════════════════════════════════════════════════════
-// SNAP LOGIC
-// ═══════════════════════════════════════════════════════
-function findSnap(movingP, excludeId){
-  // Returns best snap position {x,y} or null
-  // Snap: align any edge of movingP to any edge of fixed prismas
-  const fixed = prismas.filter(p=>p.id!==excludeId);
-  if(!fixed.length) return null;
-
-  const SNAP_THRESH_MM = 20 / scale; // 20px in mm
-  let best = null;
-  let bestDist = Infinity;
-
-  // Candidate snap positions: place movingP adjacent to each edge of each fixed prisma
-  for(const fp of fixed){
-    const candidates = [
-      // Right of fp
-      {x: fp.x + fp.ex, y: fp.y},
-      // Left of fp
-      {x: fp.x - movingP.ex, y: fp.y},
-      // Below fp
-      {x: fp.x, y: fp.y + fp.ey},
-      // Above fp
-      {x: fp.x, y: fp.y - movingP.ey},
-      // Right of fp, aligned bottom
-      {x: fp.x + fp.ex, y: fp.y + fp.ey - movingP.ey},
-      // Left of fp, aligned bottom
-      {x: fp.x - movingP.ex, y: fp.y + fp.ey - movingP.ey},
-      // Below fp, aligned right
-      {x: fp.x + fp.ex - movingP.ex, y: fp.y + fp.ey},
-      // Above fp, aligned right
-      {x: fp.x + fp.ex - movingP.ex, y: fp.y - movingP.ey},
-    ];
-    for(const c of candidates){
-      const dist = Math.hypot(movingP.x - c.x, movingP.y - c.y);
-      if(dist < bestDist){
-        bestDist = dist;
-        best = c;
-      }
-    }
-  }
-  return best; // always snap to nearest candidate
-}
-
-function overlaps(a, b){
-  return !(a.x+a.ex<=b.x || b.x+b.ex<=a.x || a.y+a.ey<=b.y || b.y+b.ey<=a.y);
-}
-
-// ═══════════════════════════════════════════════════════
-// MOUSE EVENTS
-// ═══════════════════════════════════════════════════════
-function getPrismaAt(cx, cy){
-  const [mx,my] = canvasToMm(cx, cy);
-  // Reverse order so topmost drawn is picked first
+// ═══ MOUSE ═══
+function getPrismaAt(cx,cy){
+  const [mx,my]=canvasToMm(cx,cy);
   for(let i=prismas.length-1;i>=0;i--){
-    const p = prismas[i];
-    if(mx>=p.x && mx<=p.x+p.ex && my>=p.y && my<=p.y+p.ey) return p;
+    const p=prismas[i];
+    if(mx>=p.x&&mx<=p.x+p.ex&&my>=p.y&&my<=p.y+p.ey) return p;
   }
   return null;
 }
 
 function onMouseDown(e){
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  const p = getPrismaAt(cx, cy);
-  if(p){
-    const [mx,my] = canvasToMm(cx,cy);
-    dragging = {id:p.id, offX:mx-p.x, offY:my-p.y};
-    selectedId = p.id;
-    canvas.style.cursor = 'grabbing';
-    renderList();
+  const rect=canvas.getBoundingClientRect();
+  const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+
+  if(currentTool==='measure'){
+    const snap=findNearestSnap(cx,cy,20);
+    const pt=snap||{mmx:canvasToMm(cx,cy)[0],mmy:canvasToMm(cx,cy)[1]};
+    if(measurePts.length>=2) measurePts=[];
+    measurePts.push(pt);
     draw();
+    return;
+  }
+
+  // select tool
+  const p=getPrismaAt(cx,cy);
+  if(p){
+    const [mx,my]=canvasToMm(cx,cy);
+    dragging={id:p.id,offX:mx-p.x,offY:my-p.y};
+    selectPrisma(p.id);
+    canvas.style.cursor='grabbing';
+  } else {
+    selectedId=null;
+    updateEditWallsPanel();
+    renderList(); draw();
   }
 }
 
 function onMouseMove(e){
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
+  const rect=canvas.getBoundingClientRect();
+  const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+
+  if(currentTool==='measure'){
+    measureSnap=findNearestSnap(cx,cy,20);
+    draw(); return;
+  }
 
   if(dragging){
-    const [mx,my] = canvasToMm(cx,cy);
-    const p = prismas.find(p=>p.id===dragging.id);
-    if(p){
-      p.x = mx - dragging.offX;
-      p.y = my - dragging.offY;
-      draw();
-    }
+    const [mx,my]=canvasToMm(cx,cy);
+    const p=prismas.find(p=>p.id===dragging.id);
+    if(p){ p.x=mx-dragging.offX; p.y=my-dragging.offY; draw(); }
   } else {
-    const p = getPrismaAt(cx,cy);
-    const newHover = p ? p.id : null;
-    if(newHover !== hoverId){
-      hoverId = newHover;
-      canvas.style.cursor = hoverId ? 'grab' : 'default';
+    const p=getPrismaAt(cx,cy);
+    const nh=p?p.id:null;
+    if(nh!==hoverId){
+      hoverId=nh;
+      canvas.style.cursor=hoverId?'grab':'default';
       draw();
     }
   }
@@ -645,259 +683,212 @@ function onMouseMove(e){
 
 function onMouseUp(e){
   if(dragging){
-    const p = prismas.find(p=>p.id===dragging.id);
-    if(p && prismas.length > 1){
-      const snap = findSnap(p, p.id);
-      if(snap){
-        p.x = snap.x;
-        p.y = snap.y;
-      }
+    const p=prismas.find(p=>p.id===dragging.id);
+    if(p&&prismas.length>1){
+      const snap=findSnapPosition(p,p.id);
+      if(snap){p.x=snap.x;p.y=snap.y;}
     }
-    dragging = null;
-    canvas.style.cursor = 'grab';
-    renderList();
-    draw();
-    updateCanvasInfo();
+    dragging=null;
+    canvas.style.cursor=hoverId?'grab':'default';
+    renderList(); draw(); updateCanvasInfo();
   }
+}
+
+function onMouseLeave(){
+  hoverId=null; measureSnap=null;
+  if(dragging){dragging=null; canvas.style.cursor='default';}
+  draw();
 }
 
 function onWheel(e){
   e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const cx = e.clientX - rect.left;
-  const cy = e.clientY - rect.top;
-  const factor = e.deltaY < 0 ? 1.12 : 0.88;
-  // Zoom toward cursor
-  panX = cx - (cx - panX)*factor;
-  panY = cy - (cy - panY)*factor;
-  scale *= factor;
-  scale = Math.max(0.5, Math.min(40, scale));
+  const rect=canvas.getBoundingClientRect();
+  const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+  const f=e.deltaY<0?1.12:.88;
+  panX=cx-(cx-panX)*f; panY=cy-(cy-panY)*f;
+  scale=Math.max(.5,Math.min(40,scale*f));
   draw();
 }
 
 function zoom(f){
-  const cx = canvas.width/2, cy = canvas.height/2;
-  panX = cx - (cx-panX)*f;
-  panY = cy - (cy-panY)*f;
-  scale *= f;
-  scale = Math.max(0.5, Math.min(40, scale));
+  const cx=canvas.width/2, cy=canvas.height/2;
+  panX=cx-(cx-panX)*f; panY=cy-(cy-panY)*f;
+  scale=Math.max(.5,Math.min(40,scale*f));
   draw();
 }
 
 function resetView(){
-  if(!prismas.length){scale=4;panX=60;panY=60;draw();return;}
+  if(!prismas.length){scale=4;panX=60;panY=canvas.height/2;draw();return;}
   const minX=Math.min(...prismas.map(p=>p.x));
-  const minY=Math.min(...prismas.map(p=>p.y));
   const maxX=Math.max(...prismas.map(p=>p.x+p.ex));
+  const minY=Math.min(...prismas.map(p=>p.y));
   const maxY=Math.max(...prismas.map(p=>p.y+p.ey));
-  const W=canvas.width, H=canvas.height;
-  const pad=60;
-  const sx=(W-pad*2)/(maxX-minX||1);
-  const sy=(H-pad*2)/(maxY-minY||1);
-  scale=Math.min(sx,sy,20);
-  panX=pad-minX*scale;
-  panY=pad-minY*scale;
+  const W=canvas.width, H=canvas.height, pad=60;
+  scale=Math.min((W-pad*2)/(maxX-minX||1),(H-pad*2)/(maxY-minY||1),20);
+  // Center the bounding box
+  panX=pad-minX*scale + ((W-pad*2)-(maxX-minX)*scale)/2;
+  panY=H-pad+minY*scale - ((H-pad*2)-(maxY-minY)*scale)/2;
   draw();
 }
 
-// ═══════════════════════════════════════════════════════
-// RIGHT PANEL TABS
-// ═══════════════════════════════════════════════════════
+// ═══ SNAP BETWEEN PRISMAS (drag) ═══
+function findSnapPosition(movingP, excludeId){
+  const fixed=prismas.filter(p=>p.id!==excludeId);
+  if(!fixed.length) return null;
+  let best=null, bestD=Infinity;
+  for(const fp of fixed){
+    const candidates=[
+      {x:fp.x+fp.ex, y:fp.y},
+      {x:fp.x-movingP.ex, y:fp.y},
+      {x:fp.x, y:fp.y+fp.ey},
+      {x:fp.x, y:fp.y-movingP.ey},
+      {x:fp.x+fp.ex, y:fp.y+fp.ey-movingP.ey},
+      {x:fp.x-movingP.ex, y:fp.y+fp.ey-movingP.ey},
+      {x:fp.x+fp.ex-movingP.ex, y:fp.y+fp.ey},
+      {x:fp.x+fp.ex-movingP.ex, y:fp.y-movingP.ey},
+    ];
+    for(const c of candidates){
+      const d=Math.hypot(movingP.x-c.x, movingP.y-c.y);
+      if(d<bestD){bestD=d;best=c;}
+    }
+  }
+  return best;
+}
+
+// ═══ RIGHT PANEL TABS ═══
 function showRightTab(t){
-  document.getElementById('rt-list').style.display = t==='list'?'block':'none';
-  const codeEl = document.getElementById('rt-code');
-  codeEl.style.display = t==='code'?'flex':'none';
+  document.getElementById('rt-list').style.display=t==='list'?'block':'none';
+  const ce=document.getElementById('rt-code');
+  ce.style.display=t==='code'?'flex':'none';
   document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['list','code'][i]===t));
   if(t==='code') generateAndShow();
 }
 
-// ═══════════════════════════════════════════════════════
-// CODE GENERATION
-// ═══════════════════════════════════════════════════════
+// ═══ CODE GENERATION ═══
 function generateAndShow(){
-  if(!prismas.length){
-    document.getElementById('code-out').textContent='— Sin prismas en el layout —';
-    return;
-  }
-  const exportStl = document.getElementById('chk-export').checked;
-  const exportPath = document.getElementById('export-path').value;
-  const code = generateCode(exportStl, exportPath);
-  document.getElementById('code-out').textContent = code;
+  if(!prismas.length){document.getElementById('code-out').textContent='— Sin prismas —';return;}
+  const exportStl=document.getElementById('chk-export').checked;
+  const exportPath=document.getElementById('export-path').value;
+  document.getElementById('code-out').textContent=generateCode(exportStl,exportPath);
   showRightTab('code');
 }
 
-function generateCode(exportStl, exportPath){
-  const L = [];
-  L.push('import bpy');
-  L.push('');
-  L.push('# Limpiar escena');
+function generateCode(exportStl,exportPath){
+  const L=[];
+  L.push('import bpy');L.push('');
   L.push('bpy.ops.object.select_all(action="SELECT")');
-  L.push('bpy.ops.object.delete()');
-  L.push('');
-  L.push('# ── Helper: prisma hueca con bordes sólidos ─────────────────────────');
-  L.push('# Método: cubo exterior sólido − cubo interior (Boolean DIFFERENCE).');
-  L.push('# El cutter sobresale 1mm por arriba → corte limpio garantizado.');
-  L.push('# remove_walls: lista de paredes laterales a eliminar ["front","back","left","right"]');
+  L.push('bpy.ops.object.delete()');L.push('');
   L.push('def make_prisma(name, ix, iy, iz, wall, x, y, solver="EXACT", remove_walls=None):');
   L.push('    remove_walls = remove_walls or []');
-  L.push('    ex, ey, ez = ix+2*wall, iy+2*wall, iz+wall');
-  L.push('    pz = 0');
-  L.push('    cx, cy = x+ex/2, y+ey/2');
-  L.push('    # Cubo exterior sólido');
-  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, pz+ez/2))');
+  L.push('    ex,ey,ez = ix+2*wall, iy+2*wall, iz+wall');
+  L.push('    cx,cy = x+ex/2, y+ey/2');
+  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx,cy,ez/2))');
   L.push('    ext = bpy.context.active_object');
-  L.push('    ext.scale = (ex, ey, ez)');
+  L.push('    ext.scale = (ex,ey,ez)');
   L.push('    bpy.ops.object.transform_apply(scale=True)');
-  L.push('    # Cutter interior (hueco principal)');
-  L.push('    cutter_h = iz + 1.0');
-  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, pz+wall+cutter_h/2))');
+  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx,cy,wall+(iz+1)/2))');
   L.push('    cut = bpy.context.active_object');
-  L.push('    cut.scale = (ix, iy, cutter_h)');
+  L.push('    cut.scale = (ix,iy,iz+1)');
   L.push('    bpy.ops.object.transform_apply(scale=True)');
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
   L.push('    ext.select_set(True)');
   L.push('    bpy.context.view_layer.objects.active = ext');
-  L.push('    mod = ext.modifiers.new("hueco","BOOLEAN")');
-  L.push('    mod.operation = "DIFFERENCE"');
-  L.push('    mod.object = cut');
-  L.push('    mod.solver = solver');
+  L.push('    mod=ext.modifiers.new("hueco","BOOLEAN")');
+  L.push('    mod.operation="DIFFERENCE"; mod.object=cut; mod.solver=solver');
   L.push('    bpy.ops.object.modifier_apply(modifier="hueco")');
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
-  L.push('    cut.select_set(True)');
-  L.push('    bpy.ops.object.delete()');
-  L.push('    # Eliminar paredes laterales seleccionadas');
-  L.push('    # Cada pared se elimina con un cutter plano que rebasa la pared por 1mm');
-  L.push('    wall_cutters = {');
-  L.push('        "front": (cx,          y - 0.5,        pz+ez/2,  ex+2, wall+1, ez+2),');
-  L.push('        "back":  (cx,          y+ey + 0.5,     pz+ez/2,  ex+2, wall+1, ez+2),');
-  L.push('        "left":  (x - 0.5,     cy,             pz+ez/2,  wall+1, ey+2, ez+2),');
-  L.push('        "right": (x+ex + 0.5,  cy,             pz+ez/2,  wall+1, ey+2, ez+2),');
+  L.push('    cut.select_set(True); bpy.ops.object.delete()');
+  L.push('    wall_cuts={');
+  L.push('        "front":(cx, y-0.5,      ez/2, ex+2, wall+1, ez+2),');
+  L.push('        "back": (cx, y+ey+0.5,   ez/2, ex+2, wall+1, ez+2),');
+  L.push('        "left": (x-0.5,    cy,   ez/2, wall+1, ey+2, ez+2),');
+  L.push('        "right":(x+ex+0.5, cy,   ez/2, wall+1, ey+2, ez+2),');
   L.push('    }');
   L.push('    for side in remove_walls:');
-  L.push('        if side not in wall_cutters: continue');
-  L.push('        lx, ly, lz, sx, sy, sz = wall_cutters[side]');
-  L.push('        bpy.ops.mesh.primitive_cube_add(size=1, location=(lx, ly, lz))');
-  L.push('        wcut = bpy.context.active_object');
-  L.push('        wcut.scale = (sx, sy, sz)');
+  L.push('        if side not in wall_cuts: continue');
+  L.push('        lx,ly,lz,sx,sy,sz=wall_cuts[side]');
+  L.push('        bpy.ops.mesh.primitive_cube_add(size=1,location=(lx,ly,lz))');
+  L.push('        wc=bpy.context.active_object; wc.scale=(sx,sy,sz)');
   L.push('        bpy.ops.object.transform_apply(scale=True)');
   L.push('        bpy.ops.object.select_all(action="DESELECT")');
-  L.push('        ext.select_set(True)');
-  L.push('        bpy.context.view_layer.objects.active = ext');
-  L.push('        wmod = ext.modifiers.new(f"wall_{side}","BOOLEAN")');
-  L.push('        wmod.operation = "DIFFERENCE"');
-  L.push('        wmod.object = wcut');
-  L.push('        wmod.solver = solver');
-  L.push('        bpy.ops.object.modifier_apply(modifier=f"wall_{side}")');
+  L.push('        ext.select_set(True); bpy.context.view_layer.objects.active=ext');
+  L.push('        wm=ext.modifiers.new(f"w_{side}","BOOLEAN")');
+  L.push('        wm.operation="DIFFERENCE"; wm.object=wc; wm.solver=solver');
+  L.push('        bpy.ops.object.modifier_apply(modifier=f"w_{side}")');
   L.push('        bpy.ops.object.select_all(action="DESELECT")');
-  L.push('        wcut.select_set(True)');
-  L.push('        bpy.ops.object.delete()');
-  L.push('    ext.name = name');
+  L.push('        wc.select_set(True); bpy.ops.object.delete()');
+  L.push('    ext.name=name');
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
-  L.push('    ext.select_set(True)');
-  L.push('    bpy.context.view_layer.objects.active = ext');
+  L.push('    ext.select_set(True); bpy.context.view_layer.objects.active=ext');
   L.push('    return ext');
   L.push('');
-  L.push('created = []');
-  L.push('');
+  L.push('created=[]');L.push('');
 
   prismas.forEach((p,i)=>{
-    const rw = Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>`"${k}"`);
-    const wallsArg = rw.length ? `[${rw.join(',')}]` : '[]';
-    L.push(`# ── Prisma ${i+1}: ${p.name} ──`);
-    L.push(`# Interior: ${p.ix}×${p.iy}×${p.iz}mm | Pared: ${p.wall}mm | Exterior: ${p.ex}×${p.ey}×${p.iz+p.wall}mm`);
-    if(rw.length) L.push(`# Paredes eliminadas: ${rw.join(', ')}`);
-    L.push(`obj = make_prisma(`);
-    L.push(`    name="${p.name}",`);
-    L.push(`    ix=${p.ix}, iy=${p.iy}, iz=${p.iz},`);
-    L.push(`    wall=${p.wall},`);
-    L.push(`    x=${Math.round(p.x*10)/10}, y=${Math.round(p.y*10)/10},`);
-    L.push(`    solver="${p.solver}",`);
-    L.push(`    remove_walls=${wallsArg}`);
-    L.push(`)`);
-    L.push(`created.append(obj)`);
-    L.push('');
+    const rw=Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>`"${k}"`);
+    const wallsArg=rw.length?`[${rw.join(',')}]`:'[]';
+    L.push(`# ── ${i+1}. ${p.name} — Int:${p.ix}×${p.iy}×${p.iz}mm Pared:${p.wall}mm`+(rw.length?` Sin:${rw.join(',')}`:''));
+    L.push(`obj=make_prisma("${p.name}",${p.ix},${p.iy},${p.iz},${p.wall},${Math.round(p.x*10)/10},${Math.round(p.y*10)/10},"${p.solver}",${wallsArg})`);
+    L.push(`created.append(obj)`);L.push('');
   });
 
-  L.push('# ── Unir todo en una sola malla para impresión 3D ──');
   L.push('bpy.ops.object.select_all(action="DESELECT")');
   L.push('for obj in created: obj.select_set(True)');
-  L.push('bpy.context.view_layer.objects.active = created[0]');
-  L.push('if len(created) > 1: bpy.ops.object.join()');
-  L.push('bpy.context.active_object.name = "base_impresion_3d"');
-  L.push('');
-  L.push('# ── Recalcular normales ──');
+  L.push('bpy.context.view_layer.objects.active=created[0]');
+  L.push('if len(created)>1: bpy.ops.object.join()');
+  L.push('bpy.context.active_object.name="base_impresion_3d"');
   L.push('bpy.ops.object.mode_set(mode="EDIT")');
   L.push('bpy.ops.mesh.select_all(action="SELECT")');
   L.push('bpy.ops.mesh.normals_make_consistent(inside=False)');
-  L.push('bpy.ops.object.mode_set(mode="OBJECT")');
-  L.push('');
+  L.push('bpy.ops.object.mode_set(mode="OBJECT")');L.push('');
 
-  if(exportStl && exportPath){
-    L.push('# ── Exportar STL ──');
-    L.push(`bpy.ops.export_mesh.stl(filepath="${exportPath}", use_selection=False, global_scale=1.0)`);
-    L.push(`print("STL exportado: ${exportPath}")`);
-    L.push('');
+  if(exportStl&&exportPath){
+    L.push(`bpy.ops.export_mesh.stl(filepath="${exportPath}",use_selection=False,global_scale=1.0)`);
+    L.push(`print("STL: ${exportPath}")`);L.push('');
   }
-
-  L.push(`print("✅ ${prismas.length} prisma(s) — base en Z=0, bordes sólidos.")`);
+  L.push(`print("✅ ${prismas.length} prisma(s) — Z>=0 — bordes sólidos")`);
   return L.join('\n');
 }
 
 function copyCode(){
-  const txt = document.getElementById('code-out').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const b=document.getElementById('copy-btn');
-    b.textContent='¡Copiado!';
+  navigator.clipboard.writeText(document.getElementById('code-out').textContent).then(()=>{
+    const b=document.getElementById('copy-btn');b.textContent='¡Copiado!';
     setTimeout(()=>b.textContent='Copiar',2000);
   });
 }
-
 function downloadCode(){
-  const txt = document.getElementById('code-out').textContent;
+  const txt=document.getElementById('code-out').textContent;
   if(txt.startsWith('—')){alert('Genera el código primero.');return;}
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
   a.download='blender_script.py';a.click();
 }
 
+// ═══ IMPORT / EXPORT PROJECT ═══
 function exportProject(){
-  const project = {version:1, nextId, nameCounter, prismas};
-  const a = document.createElement('a');
-  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(project));
-  a.download = 'proyecto_3d.json';
-  a.click();
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({version:1,nextId,nameCounter,prismas}));
+  a.download='proyecto_3d.json';a.click();
 }
-
 function importProject(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const project = JSON.parse(e.target.result);
-      if(!project.prismas || !Array.isArray(project.prismas)){
-        alert('Archivo inválido — no contiene prismas.');
-        return;
-      }
-      prismas = project.prismas.map(p => ({
-        ...p,
-        ex: p.ex || p.ix + 2*p.wall,
-        ey: p.ey || p.iy + 2*p.wall,
-        removedWalls: p.removedWalls || {front:false,back:false,left:false,right:false}
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    try{
+      const proj=JSON.parse(e.target.result);
+      if(!proj.prismas||!Array.isArray(proj.prismas)){alert('Archivo inválido.');return;}
+      prismas=proj.prismas.map(p=>({...p,
+        ex:p.ex||p.ix+2*p.wall, ey:p.ey||p.iy+2*p.wall,
+        removedWalls:p.removedWalls||{front:false,back:false,left:false,right:false}
       }));
-      nextId = project.nextId || (Math.max(...prismas.map(p=>p.id)) + 1);
-      nameCounter = project.nameCounter || prismas.length + 1;
-      selectedId = null;
-      document.getElementById('selected-actions').style.display = 'none';
-      document.getElementById('canvas-hint').style.display = prismas.length ? 'none' : 'block';
-      renderList();
-      draw();
-      updateCanvasInfo();
-      resetView();
-    } catch(err) {
-      alert('Error al leer el archivo: ' + err.message);
-    }
-    event.target.value = '';
+      nextId=proj.nextId||(Math.max(...prismas.map(p=>p.id))+1);
+      nameCounter=proj.nameCounter||prismas.length+1;
+      selectedId=null;
+      updateEditWallsPanel();
+      document.getElementById('canvas-hint').style.display=prismas.length?'none':'block';
+      renderList();draw();updateCanvasInfo();resetView();
+    }catch(err){alert('Error: '+err.message);}
+    event.target.value='';
   };
   reader.readAsText(file);
 }
