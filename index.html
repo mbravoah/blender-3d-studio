@@ -254,13 +254,20 @@
 
   <div class="panel-section">
     <div class="section-title">Posición en cama (mm)</div>
-    <div class="row3">
-      <div><label>X lateral</label><input type="number" id="px" value="0" step="1"></div>
-      <div><label>Y profund.</label><input type="number" id="py" value="0" step="1"></div>
-      <div><label>Z desde cama ↑</label><input type="number" id="pz" value="0" step="1" min="0" oninput="validatePZ(this)"></div>
+    <div class="row3" style="margin-bottom:10px">
+      <div><label>X lateral</label><input type="number" id="px" value="0" step="1" oninput="updatePositionPreview()"></div>
+      <div><label>Y profund.</label><input type="number" id="py" value="0" step="1" oninput="updatePositionPreview()"></div>
+      <div><label>Z desde cama ↑</label><input type="number" id="pz" value="0" step="1" min="0" oninput="validatePZ(this);updatePositionPreview()"></div>
     </div>
     <div class="warn-box" id="warn-z">⚠ Z negativo no válido. Se usará Z = 0.</div>
-    <p class="hint" style="margin-top:6px">Todos los objetos tienen su base en Z ≥ 0. Nunca se genera geometría bajo la cama.</p>
+    <div style="margin-top:10px">
+      <label style="margin-bottom:6px">Vista superior — cama de impresión</label>
+      <div style="position:relative;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+        <canvas id="pos-canvas" width="312" height="180" style="display:block;width:100%;cursor:crosshair"></canvas>
+        <div style="position:absolute;bottom:6px;right:8px;font-size:9px;color:var(--text3);letter-spacing:.05em">CLIC PARA POSICIONAR</div>
+      </div>
+      <p class="hint" style="margin-top:5px">Amarillo = figura actual. Gris = figuras en secuencia. Clic en el canvas para mover.</p>
+    </div>
   </div>
 
   <div class="panel-section">
@@ -459,33 +466,32 @@ function generateCode(figs,joinAll,exportStl,exportPath){
   L.push('bpy.ops.object.delete()');
   L.push('');
   L.push('# NOTA: Toda geometría tiene base en Z >= 0 (cama de impresión)');
-  L.push('# Los prismas huecos se construyen con BMesh directo (sin booleanos)');
-  L.push('# para garantizar paredes sólidas correctas para impresión 3D.');
+  L.push('# Prismas huecos construidos con extrusión BMesh — paredes 100% sólidas.');
   L.push('');
   L.push('created_objects = []');
   L.push('');
 
-  // Helper function emitted once into the script
-  L.push('# ── Helper: construir caja hueca con BMesh ──────────────────────────');
-  L.push('def make_hollow_box(name, ix, iy, iz, wall, pz, px=0, py=0, remove_faces=None):');
+  L.push('# ── Helper: prisma rectangular hueco ────────────────────────────────');
+  L.push('def make_hollow_box(name, ix, iy, iz, wall, pz, px=0, py=0, remove_top=True, remove_bottom=False):');
   L.push('    """');
-  L.push('    Construye un prisma rectangular hueco para impresión 3D.');
-  L.push('    ix,iy,iz = dimensiones INTERNAS.');
-  L.push('    wall     = grosor de paredes y fondo.');
-  L.push('    pz       = posición Z de la base exterior (>= 0).');
-  L.push('    remove_faces = lista de caras a eliminar: "top","bottom","front","back","left","right"');
-  L.push('    La pieza tiene fondo pero NO tapa por defecto (open top).');
+  L.push('    Método: crea el perfil exterior en anillo (loop),');
+  L.push('    extruye hacia arriba, y cierra el fondo con una cara sólida.');
+  L.push('    Garantiza malla manifold correcta para impresión 3D.');
+  L.push('    ix,iy,iz : dimensiones INTERNAS (lo que cabe adentro)');
+  L.push('    wall     : grosor de paredes y fondo');
+  L.push('    pz       : Z de la base exterior (>= 0, cama de impresión)');
   L.push('    """');
-  L.push('    ex, ey, ez = ix + 2*wall, iy + 2*wall, iz + wall  # exterior');
-  L.push('    # Coordenadas exteriores (base en pz)');
-  L.push('    x0, x1 = px - ex/2, px + ex/2');
-  L.push('    y0, y1 = py - ey/2, py + ey/2');
-  L.push('    z0, z1 = pz,        pz + ez');
-  L.push('    # Coordenadas interiores');
-  L.push('    xi0, xi1 = px - ix/2, px + ix/2');
-  L.push('    yi0, yi1 = py - iy/2, py + iy/2');
-  L.push('    zi0      = pz + wall   # fondo interior');
-  L.push('    zi1      = pz + ez     # tope (abierto)');
+  L.push('    # Dimensiones exteriores');
+  L.push('    ex = ix + 2 * wall');
+  L.push('    ey = iy + 2 * wall');
+  L.push('    ez = iz + wall        # altura exterior = interior + fondo');
+  L.push('');
+  L.push('    # Coordenadas del perfil de anillo (vista desde arriba)');
+  L.push('    # Exterior (sentido antihorario visto desde abajo = normal hacia afuera)');
+  L.push('    # Puntos: esquinas ext e int del anillo en Z=pz');
+  L.push('    hx, hy = ex/2, ey/2   # semiancho exterior');
+  L.push('    hxi, hyi = ix/2, iy/2 # semiancho interior');
+  L.push('    cx, cy = px, py       # centro XY');
   L.push('');
   L.push('    mesh = bpy.data.meshes.new(name)');
   L.push('    obj  = bpy.data.objects.new(name, mesh)');
@@ -495,49 +501,70 @@ function generateCode(figs,joinAll,exportStl,exportPath){
   L.push('');
   L.push('    bm = bmesh.new()');
   L.push('');
-  L.push('    # 8 vértices exteriores');
-  L.push('    e = [bm.verts.new(v) for v in [');
-  L.push('        (x0,y0,z0),(x1,y0,z0),(x1,y1,z0),(x0,y1,z0),  # base ext');
-  L.push('        (x0,y0,z1),(x1,y0,z1),(x1,y1,z1),(x0,y1,z1),  # tope ext');
-  L.push('    ]]');
-  L.push('    # 8 vértices interiores');
-  L.push('    i = [bm.verts.new(v) for v in [');
-  L.push('        (xi0,yi0,zi0),(xi1,yi0,zi0),(xi1,yi1,zi0),(xi0,yi1,zi0),  # fondo int');
-  L.push('        (xi0,yi0,zi1),(xi1,yi0,zi1),(xi1,yi1,zi1),(xi0,yi1,zi1),  # tope int');
-  L.push('    ]]');
+  L.push('    # ── 1. Crear anillo de vértices en Z=pz (base) ──');
+  L.push('    # 8 vértices: 4 exteriores + 4 interiores, en orden consistente');
+  L.push('    zb = pz          # Z base');
+  L.push('    zt = pz + ez     # Z tope');
+  L.push('    zfi = pz + wall  # Z fondo interior');
   L.push('');
-  L.push('    rm = set(remove_faces or [])');
+  L.push('    # Exteriores base (horario visto desde abajo)');
+  L.push('    e0 = bm.verts.new((cx-hx,  cy-hy,  zb))');
+  L.push('    e1 = bm.verts.new((cx+hx,  cy-hy,  zb))');
+  L.push('    e2 = bm.verts.new((cx+hx,  cy+hy,  zb))');
+  L.push('    e3 = bm.verts.new((cx-hx,  cy+hy,  zb))');
+  L.push('    # Interiores base');
+  L.push('    i0 = bm.verts.new((cx-hxi, cy-hyi, zb))');
+  L.push('    i1 = bm.verts.new((cx+hxi, cy-hyi, zb))');
+  L.push('    i2 = bm.verts.new((cx+hxi, cy+hyi, zb))');
+  L.push('    i3 = bm.verts.new((cx-hxi, cy+hyi, zb))');
+  L.push('    # Exteriores tope');
+  L.push('    E0 = bm.verts.new((cx-hx,  cy-hy,  zt))');
+  L.push('    E1 = bm.verts.new((cx+hx,  cy-hy,  zt))');
+  L.push('    E2 = bm.verts.new((cx+hx,  cy+hy,  zt))');
+  L.push('    E3 = bm.verts.new((cx-hx,  cy+hy,  zt))');
+  L.push('    # Interiores tope');
+  L.push('    I0 = bm.verts.new((cx-hxi, cy-hyi, zt))');
+  L.push('    I1 = bm.verts.new((cx+hxi, cy-hyi, zt))');
+  L.push('    I2 = bm.verts.new((cx+hxi, cy+hyi, zt))');
+  L.push('    I3 = bm.verts.new((cx-hxi, cy+hyi, zt))');
+  L.push('    # Interiores fondo (Z = pz+wall, cara interna del fondo)');
+  L.push('    f0 = bm.verts.new((cx-hxi, cy-hyi, zfi))');
+  L.push('    f1 = bm.verts.new((cx+hxi, cy-hyi, zfi))');
+  L.push('    f2 = bm.verts.new((cx+hxi, cy+hyi, zfi))');
+  L.push('    f3 = bm.verts.new((cx-hxi, cy+hyi, zfi))');
   L.push('');
-  L.push('    # Cara: fondo exterior');
-  L.push('    if "bottom" not in rm:');
-  L.push('        bm.faces.new([e[0],e[3],e[2],e[1]])');
-  L.push('    # Cara: fondo interior (cara interna del fondo — sólido)');
-  L.push('    bm.faces.new([i[0],i[1],i[2],i[3]])');
-  L.push('    # Cara: tope abierto interior (anillo)');
-  L.push('    if "top" not in rm:');
-  L.push('        bm.faces.new([e[4],e[5],i[5],i[4]])  # frente tope');
-  L.push('        bm.faces.new([e[5],e[6],i[6],i[5]])  # derecha tope');
-  L.push('        bm.faces.new([e[6],e[7],i[7],i[6]])  # fondo tope');
-  L.push('        bm.faces.new([e[7],e[4],i[4],i[7]])  # izquierda tope');
-  L.push('    # Paredes exteriores');
-  L.push('    if "front" not in rm:');
-  L.push('        bm.faces.new([e[0],e[1],e[5],e[4]])');
-  L.push('    if "right" not in rm:');
-  L.push('        bm.faces.new([e[1],e[2],e[6],e[5]])');
-  L.push('    if "back" not in rm:');
-  L.push('        bm.faces.new([e[2],e[3],e[7],e[6]])');
-  L.push('    if "left" not in rm:');
-  L.push('        bm.faces.new([e[3],e[0],e[4],e[7]])');
-  L.push('    # Paredes interiores (cara interna de cada pared)');
-  L.push('    bm.faces.new([i[1],i[0],i[4],i[5]])  # frente int');
-  L.push('    bm.faces.new([i[2],i[1],i[5],i[6]])  # derecha int');
-  L.push('    bm.faces.new([i[3],i[2],i[6],i[7]])  # fondo int');
-  L.push('    bm.faces.new([i[0],i[3],i[7],i[4]])  # izquierda int');
-  L.push('    # Conectores fondo ext→int (las 4 esquinas del fondo sólido)');
-  L.push('    bm.faces.new([e[0],e[1],i[1],i[0]])');
-  L.push('    bm.faces.new([e[1],e[2],i[2],i[1]])');
-  L.push('    bm.faces.new([e[2],e[3],i[3],i[2]])');
-  L.push('    bm.faces.new([e[3],e[0],i[0],i[3]])');
+  L.push('    # ── 2. Crear caras ──');
+  L.push('    # Fondo exterior (cara inferior visible)');
+  L.push('    if not remove_bottom:');
+  L.push('        bm.faces.new([e0, e3, e2, e1])  # normal hacia -Z');
+  L.push('    # Fondo sólido: anillo entre ext base e int fondo');
+  L.push('    bm.faces.new([e0, e1, i1, i0])  # frente fondo');
+  L.push('    bm.faces.new([e1, e2, i2, i1])  # derecha fondo');
+  L.push('    bm.faces.new([e2, e3, i3, i2])  # trasera fondo');
+  L.push('    bm.faces.new([e3, e0, i0, i3])  # izquierda fondo');
+  L.push('    # Cara interior del fondo (superficie interna horizontal)');
+  L.push('    bm.faces.new([f0, f1, f2, f3])  # normal hacia +Z');
+  L.push('    # Conectar i (base ext) → f (fondo int): las paredes del fondo en vertical');
+  L.push('    bm.faces.new([i0, i1, f1, f0])');
+  L.push('    bm.faces.new([i1, i2, f2, f1])');
+  L.push('    bm.faces.new([i2, i3, f3, f2])');
+  L.push('    bm.faces.new([i3, i0, f0, f3])');
+  L.push('    # Paredes exteriores (de base a tope)');
+  L.push('    bm.faces.new([e0, e1, E1, E0])  # frente ext');
+  L.push('    bm.faces.new([e1, e2, E2, E1])  # derecha ext');
+  L.push('    bm.faces.new([e2, e3, E3, E2])  # trasera ext');
+  L.push('    bm.faces.new([e3, e0, E0, E3])  # izquierda ext');
+  L.push('    # Paredes interiores (de fondo int a tope)');
+  L.push('    bm.faces.new([I0, I1, f1, f0])  # frente int');
+  L.push('    bm.faces.new([I1, I2, f2, f1])  # derecha int');
+  L.push('    bm.faces.new([I2, I3, f3, f2])  # trasera int');
+  L.push('    bm.faces.new([I3, I0, f0, f3])  # izquierda int');
+  L.push('    # Anillo superior (borde de las paredes en el tope)');
+  L.push('    if not remove_top:');
+  L.push('        bm.faces.new([E0, E1, I1, I0])  # frente tope');
+  L.push('        bm.faces.new([E1, E2, I2, I1])  # derecha tope');
+  L.push('        bm.faces.new([E2, E3, I3, I2])  # trasera tope');
+  L.push('        bm.faces.new([E3, E0, I0, I3])  # izquierda tope');
   L.push('');
   L.push('    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)');
   L.push('    bm.to_mesh(mesh)');
@@ -555,15 +582,15 @@ function generateCode(figs,joinAll,exportStl,exportPath){
     if(f.shape==='box'){
       const{dx,dy,dz}=f.dims;
       if(f.hollow){
-        // Build face removal list
-        const fl=Object.entries(f.faces).filter(([,v])=>v).map(([k])=>k);
-        const faceStr=fl.length?`["${fl.join('","')}"]`:'[]';
+        const removeTop=f.faces.top?'True':'False';
+        const removeBottom=f.faces.bottom?'True':'False';
         L.push(`${nm} = make_hollow_box(`);
         L.push(`    name="figura_${idx+1}",`);
         L.push(`    ix=${dx}, iy=${dy}, iz=${dz},`);
         L.push(`    wall=${w},`);
         L.push(`    pz=${pz}, px=${px}, py=${py},`);
-        L.push(`    remove_faces=${faceStr}`);
+        L.push(`    remove_top=${removeTop},`);
+        L.push(`    remove_bottom=${removeBottom}`);
         L.push(`)`);
       } else {
         // Sólido: cubo simple
@@ -748,6 +775,112 @@ function resetForm(){
 }
 
 onShapeChange();onSolidChange();refreshCalc();setPreset('open-top');
+
+// ── Canvas posicionador ──────────────────────────────────────────────
+const CAMA_W=200, CAMA_H=200; // mm representados
+function updatePositionPreview(){
+  const canvas=document.getElementById('pos-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const pad=16;
+  ctx.clearRect(0,0,W,H);
+
+  // Fondo cama
+  ctx.fillStyle='rgba(255,255,255,0.03)';
+  ctx.fillRect(pad,pad,W-pad*2,H-pad*2);
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=0.5;
+  ctx.strokeRect(pad,pad,W-pad*2,H-pad*2);
+
+  // Grid ligero
+  ctx.strokeStyle='rgba(255,255,255,0.04)';
+  ctx.lineWidth=0.5;
+  for(let g=1;g<4;g++){
+    const gx=pad+(W-pad*2)/4*g;
+    const gy=pad+(H-pad*2)/4*g;
+    ctx.beginPath();ctx.moveTo(gx,pad);ctx.lineTo(gx,H-pad);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pad,gy);ctx.lineTo(W-pad,gy);ctx.stroke();
+  }
+
+  // Ejes
+  const ox=W/2, oy=H/2;
+  ctx.strokeStyle='rgba(255,255,255,0.12)';
+  ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(ox,pad);ctx.lineTo(ox,H-pad);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad,oy);ctx.lineTo(W-pad,oy);ctx.stroke();
+
+  // Labels ejes
+  ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.font='9px monospace';
+  ctx.fillText('X+',W-pad-14,oy-4);
+  ctx.fillText('Y+',ox+4,pad+10);
+
+  function toCanvas(mmx,mmy){
+    const scale=(W-pad*2)/CAMA_W;
+    return [ox+mmx*scale, oy-mmy*scale];
+  }
+  function drawRect(mmx,mmy,mmw,mmh,color,label){
+    const [cx,cy]=toCanvas(mmx,mmy);
+    const scale=(W-pad*2)/CAMA_W;
+    const rw=mmw*scale, rh=mmh*scale;
+    ctx.fillStyle=color;
+    ctx.fillRect(cx-rw/2,cy-rh/2,rw,rh);
+    ctx.strokeStyle=color.replace('0.2','0.6').replace('0.15','0.5');
+    ctx.lineWidth=1;
+    ctx.strokeRect(cx-rw/2,cy-rh/2,rw,rh);
+    if(label){
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      ctx.font='9px monospace';
+      ctx.fillText(label,cx-rw/2+3,cy-rh/2+10);
+    }
+  }
+
+  // Figuras en secuencia (gris)
+  const shape=document.getElementById('shape').value;
+  const hollow=document.getElementById('solidType').value==='hollow';
+  const wall=parseFloat(document.getElementById('wall').value)||3;
+
+  sequence.forEach((f,i)=>{
+    let fw=40,fh=20;
+    if(f.shape==='box'){fw=f.hollow?f.dims.dx+2*f.wall:f.dims.dx;fh=f.hollow?f.dims.dy+2*f.wall:f.dims.dy;}
+    else if(f.shape==='cylinder'||f.shape==='hex'){const r=f.hollow?f.dims.r+f.wall:f.dims.r;fw=r*2;fh=r*2;}
+    else if(f.shape==='sphere'){const r=f.hollow?f.dims.r+f.wall:f.dims.r;fw=r*2;fh=r*2;}
+    drawRect(f.pos[0],f.pos[1],Math.min(fw,60),Math.min(fh,60),'rgba(120,120,120,0.15)',`${i+1}`);
+  });
+
+  // Figura actual (amarillo)
+  let cw=34,ch=21;
+  if(shape==='box'){cw=hollow?parseFloat(document.getElementById('dx').value||28)+2*wall:parseFloat(document.getElementById('dx').value||28);ch=hollow?parseFloat(document.getElementById('dy').value||15)+2*wall:parseFloat(document.getElementById('dy').value||15);}
+  else if(shape==='cylinder'||shape==='hex'){const r=hollow?(parseFloat(document.getElementById('cr').value||14)||parseFloat(document.getElementById('hexr').value||15))+wall:parseFloat(document.getElementById('cr').value||14);cw=r*2;ch=r*2;}
+  else if(shape==='sphere'){const r=hollow?(parseFloat(document.getElementById('sr').value||15))+wall:parseFloat(document.getElementById('sr').value||15);cw=r*2;ch=r*2;}
+  const curX=parseFloat(document.getElementById('px').value)||0;
+  const curY=parseFloat(document.getElementById('py').value)||0;
+  drawRect(curX,curY,Math.min(cw,80),Math.min(ch,80),'rgba(232,255,71,0.2)','★');
+
+  // Coordenadas actuales
+  ctx.fillStyle='rgba(232,255,71,0.7)';
+  ctx.font='9px monospace';
+  ctx.fillText(`x=${curX} y=${curY}`,pad+3,H-pad-4);
+}
+
+// Clic en canvas para posicionar
+document.addEventListener('DOMContentLoaded',()=>{
+  const canvas=document.getElementById('pos-canvas');
+  if(!canvas)return;
+  canvas.addEventListener('click',(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const W=canvas.width,H=canvas.height,pad=16;
+    const ox=W/2,oy=H/2;
+    const scale=(W-pad*2)/CAMA_W;
+    const rawX=(e.offsetX*(W/rect.width)-ox)/scale;
+    const rawY=-(e.offsetY*(H/rect.height)-oy)/scale;
+    document.getElementById('px').value=Math.round(rawX);
+    document.getElementById('py').value=Math.round(rawY);
+    updatePositionPreview();
+  });
+  updatePositionPreview();
+});
 </script>
 </body>
 </html>
