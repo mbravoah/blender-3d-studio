@@ -78,6 +78,11 @@ button:active{transform:scale(.97)}
 .tab{flex:1;padding:5px;text-align:center;background:transparent;border:none;color:var(--text2);border-radius:6px;font-size:11px}
 .tab.active{background:var(--bg2);color:var(--text);border:0.5px solid var(--border2)}
 .code-area{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:1rem;font-family:inherit;font-size:11px;line-height:1.7;color:#c9d1d9;white-space:pre;overflow:auto;flex:1;min-height:0}
+.wall-btn{width:36px;height:36px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;user-select:none}
+.wall-btn span{font-size:9px;color:var(--text2);letter-spacing:.02em;text-align:center;line-height:1.3}
+.wall-btn:hover{border-color:var(--text2)}
+.wall-btn.removed{background:var(--danger-bg);border-color:var(--danger)}
+.wall-btn.removed span{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -103,7 +108,48 @@ button:active{transform:scale(.97)}
       <div><label>Nombre</label><input type="text" id="n-name" value="P1" style="width:100%"></div>
     </div>
     <div class="calc-bar">Ext: <span id="n-ext">34 × 21</span> mm &nbsp;|&nbsp; Int: <span id="n-int" style="color:var(--text2)">28 × 15</span> mm</div>
-    <p class="hint" style="margin-top:6px">Todas las prismas tienen base y están abiertas por arriba.</p>
+  </div>
+
+  <div class="psec">
+    <div class="stitle">Paredes a eliminar</div>
+    <p class="hint" style="margin-bottom:10px">Clic para quitar una pared lateral. El fondo siempre presente. Útil para uniones entre prismas.</p>
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div>
+        <!-- 3x3 grid representing top view of the box -->
+        <div style="display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:repeat(3,36px);gap:3px">
+          <div style="background:transparent"></div>
+          <div class="wall-btn" id="w-front" onclick="toggleWall('front',this)" title="Pared frontal (−Y)">
+            <span>↑ Frt</span>
+          </div>
+          <div style="background:transparent"></div>
+          <div class="wall-btn" id="w-left" onclick="toggleWall('left',this)" title="Pared izquierda (−X)">
+            <span>← Izq</span>
+          </div>
+          <div style="background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:9px;color:var(--text3)">INT</span>
+          </div>
+          <div class="wall-btn" id="w-right" onclick="toggleWall('right',this)" title="Pared derecha (+X)">
+            <span>Der →</span>
+          </div>
+          <div style="background:transparent"></div>
+          <div class="wall-btn" id="w-back" onclick="toggleWall('back',this)" title="Pared trasera (+Y)">
+            <span>↓ Tras</span>
+          </div>
+          <div style="background:transparent"></div>
+        </div>
+        <p class="hint" style="margin-top:6px;max-width:120px">Rojo = eliminada</p>
+      </div>
+      <div>
+        <label style="margin-bottom:5px">Accesos rápidos</label>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('none')">Todas las paredes</button>
+          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('front')">Sin frente</button>
+          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('back')">Sin trasera</button>
+          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('left')">Sin izquierda</button>
+          <button class="btn" style="font-size:11px;text-align:left;padding:4px 9px" onclick="setWallPreset('right')">Sin derecha</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="psec">
@@ -139,6 +185,9 @@ button:active{transform:scale(.97)}
   <div class="canvas-toolbar">
     <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Layout — vista superior (mm)</span>
     <div style="font-size:10px;color:var(--text2);margin-left:8px" id="canvas-info">Sin prismas</div>
+    <div id="selected-actions" style="display:none;margin-left:8px">
+      <button class="btn-danger" style="padding:3px 10px;font-size:11px" onclick="deleteSelected()">✕ Eliminar seleccionada</button>
+    </div>
     <div class="zoom-row">
       <button class="btn" style="padding:3px 9px;font-size:11px" onclick="zoom(1.2)">+</button>
       <button class="btn" style="padding:3px 9px;font-size:11px" onclick="zoom(0.8)">−</button>
@@ -165,7 +214,7 @@ button:active{transform:scale(.97)}
     <div id="prisma-list"></div>
   </div>
 
-  <div id="rt-code" style="display:none;flex:1;display:none;flex-direction:column;padding:.75rem;gap:.5rem">
+  <div id="rt-code" style="display:none;flex:1;flex-direction:column;padding:.75rem;gap:.5rem">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Script Blender</span>
       <div style="display:flex;gap:5px">
@@ -184,9 +233,23 @@ button:active{transform:scale(.97)}
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
-let prismas = [];   // {id, name, ix, iy, iz, wall, solver, x, y}  x,y = posición layout (mm)
+let prismas = [];   // {id, name, ix, iy, iz, wall, solver, x, y, removedWalls}
 let nextId = 1;
 let nameCounter = 1;
+const removedWalls = {front:false, back:false, left:false, right:false};
+
+function toggleWall(side, el){
+  removedWalls[side] = !removedWalls[side];
+  el.classList.toggle('removed', removedWalls[side]);
+}
+
+function setWallPreset(preset){
+  ['front','back','left','right'].forEach(s=>{
+    removedWalls[s] = preset===s;
+    const el=document.getElementById('w-'+s);
+    if(el) el.classList.toggle('removed', removedWalls[s]);
+  });
+}
 
 // Canvas state
 let canvas, ctx;
@@ -246,27 +309,29 @@ function addPrisma(){
   const solver = document.getElementById('n-solver').value;
   const name = document.getElementById('n-name').value.trim() || `P${nameCounter}`;
   nameCounter++;
-  // Auto-increment name suggestion
   document.getElementById('n-name').value = `P${nameCounter}`;
 
-  // Exterior dims
   const ex = ix + 2*wall;
   const ey = iy + 2*wall;
 
-  // Place next to existing prismas automatically (snap to right of last)
   let px = 0, py = 0;
   if(prismas.length > 0){
-    // find rightmost edge
     const maxRight = Math.max(...prismas.map(p => p.x + p.ex));
-    px = maxRight; // flush against right edge
+    px = maxRight;
     py = 0;
   }
 
-  prismas.push({id:nextId++, name, ix, iy, iz, wall, solver, ex, ey, x:px, y:py});
+  // Snapshot current wall removal state
+  const walls = {...removedWalls};
+
+  prismas.push({id:nextId++, name, ix, iy, iz, wall, solver, ex, ey, x:px, y:py, removedWalls:walls});
   renderList();
   draw();
   updateCanvasInfo();
   document.getElementById('canvas-hint').style.display = 'none';
+
+  // Reset wall selector for next prisma
+  setWallPreset('none');
 }
 
 function removePrisma(id){
@@ -303,23 +368,34 @@ function renderList(){
   const empty = document.getElementById('list-empty');
   if(!prismas.length){empty.style.display='block';el.innerHTML='';return;}
   empty.style.display='none';
-  el.innerHTML = prismas.map((p,i)=>`
+  el.innerHTML = prismas.map((p,i)=>{
+    const rw = Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>k);
+    const wallsLabel = rw.length ? `<span style="color:var(--danger);font-size:10px"> — sin: ${rw.join(', ')}</span>` : '';
+    return `
     <div class="prisma-item ${selectedId===p.id?'selected':''}" onclick="selectPrisma(${p.id})" style="border-left:2px solid ${colorOf(i)}">
       <div class="pi-num" style="background:${colorOf(i)};color:#0f0f0f">${i+1}</div>
       <div class="pi-info">
-        <div class="pi-name">${p.name}</div>
+        <div class="pi-name">${p.name}${wallsLabel}</div>
         <div class="pi-dims">Int: ${p.ix}×${p.iy}×${p.iz}mm | Ext: ${p.ex}×${p.ey}mm | Pared: ${p.wall}mm</div>
         <div class="pi-pos">Pos: x=${Math.round(p.x)} y=${Math.round(p.y)}</div>
       </div>
       <button class="btn-danger" onclick="event.stopPropagation();removePrisma(${p.id})">✕</button>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function selectPrisma(id){
   selectedId = id;
+  document.getElementById('selected-actions').style.display = id ? 'block' : 'none';
   renderList();
   draw();
+}
+
+function deleteSelected(){
+  if(!selectedId) return;
+  removePrisma(selectedId);
+  selectedId = null;
+  document.getElementById('selected-actions').style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -656,22 +732,23 @@ function generateCode(exportStl, exportPath){
   L.push('# ── Helper: prisma hueca con bordes sólidos ─────────────────────────');
   L.push('# Método: cubo exterior sólido − cubo interior (Boolean DIFFERENCE).');
   L.push('# El cutter sobresale 1mm por arriba → corte limpio garantizado.');
-  L.push('def make_prisma(name, ix, iy, iz, wall, x, y, solver="EXACT"):');
+  L.push('# remove_walls: lista de paredes laterales a eliminar ["front","back","left","right"]');
+  L.push('def make_prisma(name, ix, iy, iz, wall, x, y, solver="EXACT", remove_walls=None):');
+  L.push('    remove_walls = remove_walls or []');
   L.push('    ex, ey, ez = ix+2*wall, iy+2*wall, iz+wall');
-  L.push('    pz = 0  # base siempre en Z=0 (cama de impresión)');
+  L.push('    pz = 0');
+  L.push('    cx, cy = x+ex/2, y+ey/2');
   L.push('    # Cubo exterior sólido');
-  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(x+ex/2, y+ey/2, pz+ez/2))');
+  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, pz+ez/2))');
   L.push('    ext = bpy.context.active_object');
   L.push('    ext.scale = (ex, ey, ez)');
   L.push('    bpy.ops.object.transform_apply(scale=True)');
-  L.push('    # Cutter interior (sobresale 1mm arriba para corte limpio)');
+  L.push('    # Cutter interior (hueco principal)');
   L.push('    cutter_h = iz + 1.0');
-  L.push('    cutter_z = pz + wall + cutter_h/2');
-  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(x+ex/2, y+ey/2, cutter_z))');
+  L.push('    bpy.ops.mesh.primitive_cube_add(size=1, location=(cx, cy, pz+wall+cutter_h/2))');
   L.push('    cut = bpy.context.active_object');
   L.push('    cut.scale = (ix, iy, cutter_h)');
   L.push('    bpy.ops.object.transform_apply(scale=True)');
-  L.push('    # Boolean DIFFERENCE');
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
   L.push('    ext.select_set(True)');
   L.push('    bpy.context.view_layer.objects.active = ext');
@@ -683,21 +760,54 @@ function generateCode(exportStl, exportPath){
   L.push('    bpy.ops.object.select_all(action="DESELECT")');
   L.push('    cut.select_set(True)');
   L.push('    bpy.ops.object.delete()');
+  L.push('    # Eliminar paredes laterales seleccionadas');
+  L.push('    # Cada pared se elimina con un cutter plano que rebasa la pared por 1mm');
+  L.push('    wall_cutters = {');
+  L.push('        "front": (cx,          y - 0.5,        pz+ez/2,  ex+2, wall+1, ez+2),');
+  L.push('        "back":  (cx,          y+ey + 0.5,     pz+ez/2,  ex+2, wall+1, ez+2),');
+  L.push('        "left":  (x - 0.5,     cy,             pz+ez/2,  wall+1, ey+2, ez+2),');
+  L.push('        "right": (x+ex + 0.5,  cy,             pz+ez/2,  wall+1, ey+2, ez+2),');
+  L.push('    }');
+  L.push('    for side in remove_walls:');
+  L.push('        if side not in wall_cutters: continue');
+  L.push('        lx, ly, lz, sx, sy, sz = wall_cutters[side]');
+  L.push('        bpy.ops.mesh.primitive_cube_add(size=1, location=(lx, ly, lz))');
+  L.push('        wcut = bpy.context.active_object');
+  L.push('        wcut.scale = (sx, sy, sz)');
+  L.push('        bpy.ops.object.transform_apply(scale=True)');
+  L.push('        bpy.ops.object.select_all(action="DESELECT")');
+  L.push('        ext.select_set(True)');
+  L.push('        bpy.context.view_layer.objects.active = ext');
+  L.push('        wmod = ext.modifiers.new(f"wall_{side}","BOOLEAN")');
+  L.push('        wmod.operation = "DIFFERENCE"');
+  L.push('        wmod.object = wcut');
+  L.push('        wmod.solver = solver');
+  L.push('        bpy.ops.object.modifier_apply(modifier=f"wall_{side}")');
+  L.push('        bpy.ops.object.select_all(action="DESELECT")');
+  L.push('        wcut.select_set(True)');
+  L.push('        bpy.ops.object.delete()');
   L.push('    ext.name = name');
+  L.push('    bpy.ops.object.select_all(action="DESELECT")');
+  L.push('    ext.select_set(True)');
+  L.push('    bpy.context.view_layer.objects.active = ext');
   L.push('    return ext');
   L.push('');
   L.push('created = []');
   L.push('');
 
   prismas.forEach((p,i)=>{
+    const rw = Object.entries(p.removedWalls||{}).filter(([,v])=>v).map(([k])=>`"${k}"`);
+    const wallsArg = rw.length ? `[${rw.join(',')}]` : '[]';
     L.push(`# ── Prisma ${i+1}: ${p.name} ──`);
     L.push(`# Interior: ${p.ix}×${p.iy}×${p.iz}mm | Pared: ${p.wall}mm | Exterior: ${p.ex}×${p.ey}×${p.iz+p.wall}mm`);
+    if(rw.length) L.push(`# Paredes eliminadas: ${rw.join(', ')}`);
     L.push(`obj = make_prisma(`);
     L.push(`    name="${p.name}",`);
     L.push(`    ix=${p.ix}, iy=${p.iy}, iz=${p.iz},`);
     L.push(`    wall=${p.wall},`);
     L.push(`    x=${Math.round(p.x*10)/10}, y=${Math.round(p.y*10)/10},`);
-    L.push(`    solver="${p.solver}"`);
+    L.push(`    solver="${p.solver}",`);
+    L.push(`    remove_walls=${wallsArg}`);
     L.push(`)`);
     L.push(`created.append(obj)`);
     L.push('');
