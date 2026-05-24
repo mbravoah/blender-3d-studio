@@ -177,6 +177,11 @@ button:active{transform:scale(.97)}
       <button class="btn btn-info" style="flex:1" onclick="generateAndShow()">Generar código →</button>
       <button class="btn" onclick="clearAll()">Limpiar</button>
     </div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <button class="btn" style="flex:1;font-size:11px" onclick="exportProject()">↓ Guardar proyecto</button>
+      <button class="btn" style="flex:1;font-size:11px" onclick="document.getElementById('import-input').click()">↑ Cargar proyecto</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importProject(event)">
+    </div>
   </div>
 </div>
 
@@ -853,6 +858,48 @@ function downloadCode(){
   const a=document.createElement('a');
   a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
   a.download='blender_script.py';a.click();
+}
+
+function exportProject(){
+  const project = {version:1, nextId, nameCounter, prismas};
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(project));
+  a.download = 'proyecto_3d.json';
+  a.click();
+}
+
+function importProject(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const project = JSON.parse(e.target.result);
+      if(!project.prismas || !Array.isArray(project.prismas)){
+        alert('Archivo inválido — no contiene prismas.');
+        return;
+      }
+      prismas = project.prismas.map(p => ({
+        ...p,
+        ex: p.ex || p.ix + 2*p.wall,
+        ey: p.ey || p.iy + 2*p.wall,
+        removedWalls: p.removedWalls || {front:false,back:false,left:false,right:false}
+      }));
+      nextId = project.nextId || (Math.max(...prismas.map(p=>p.id)) + 1);
+      nameCounter = project.nameCounter || prismas.length + 1;
+      selectedId = null;
+      document.getElementById('selected-actions').style.display = 'none';
+      document.getElementById('canvas-hint').style.display = prismas.length ? 'none' : 'block';
+      renderList();
+      draw();
+      updateCanvasInfo();
+      resetView();
+    } catch(err) {
+      alert('Error al leer el archivo: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 </script>
 </body>
